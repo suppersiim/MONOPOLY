@@ -1,0 +1,2 @@
+# MONOPOLY
+Objektorienteeritud programmeerimine rühmatöö
