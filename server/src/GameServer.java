@@ -6,7 +6,7 @@ import java.util.List;
 public class GameServer {
 
     public final int PORT;
-    private List<ClientHandler> clents;
+    private final List<ClientHandler> clents;
 
     public GameServer(int PORT) {
         this.PORT = PORT;
