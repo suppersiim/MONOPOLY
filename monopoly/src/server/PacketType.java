@@ -1,7 +1,14 @@
 package server;
 
 public enum PacketType {
-    TEST,
+
+    // client packets
+    CLIENT_TEST,
+
+    // server packets
+    SERVER_GAME_STATE_UPDATE,
+
+    // general packets
     QUIT;
 
 

@@ -1,5 +1,6 @@
 package server;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public class GameServer {
     public GameServer(int PORT) {
         this.PORT = PORT;
         this.clents = new ArrayList<>();
-        this.gameState = new GameState();
+        this.gameState = new GameState(this);
     }
 
     // Start the game server
@@ -29,9 +30,16 @@ public class GameServer {
 
                 clents.add(clientHandler);
                 new Thread(clientHandler).start();
+                clientHandler.send(new GamePacket(PacketType.SERVER_GAME_STATE_UPDATE, gameState.serialize()));
             }
         } catch (Exception e) {
-            System.out.println("Error starting server: " + e.getMessage());
+            System.out.println("Error starting server (receiver): " + e.getMessage());
+        }
+    }
+
+    public void sendToAllClients(GamePacket packet) throws IOException {
+        for (ClientHandler client : clents) {
+            client.send(packet);
         }
     }
 
