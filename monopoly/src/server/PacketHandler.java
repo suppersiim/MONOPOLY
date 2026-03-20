@@ -1,5 +1,8 @@
 package server;
 
+import common.GamePacket;
+import common.PacketType;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 

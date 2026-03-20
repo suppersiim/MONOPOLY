@@ -1,8 +1,6 @@
 package client;
 
-import server.GamePacket;
-import server.GameServer;
-import server.PacketType;
+import common.GamePacket;
 
 import java.io.*;
 import java.net.Socket;

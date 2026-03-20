@@ -1,13 +1,13 @@
 package client;
 
-import server.GamePacket;
-import server.GameState;
-import server.PacketType;
+import common.GameState;
+import common.GamePacket;
+import common.PacketType;
 
 import java.io.DataInputStream;
 
 public class Game {
-    private GameState gameState;
+    private final GameState gameState;
     private final GameClient gameClient;
     private volatile boolean running = false;
 

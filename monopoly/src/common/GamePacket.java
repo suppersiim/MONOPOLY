@@ -1,4 +1,4 @@
-package server;
+package common;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;

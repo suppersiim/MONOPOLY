@@ -1,6 +1,6 @@
 package client;
 
-import server.GamePacket;
+import common.GamePacket;
 
 import java.io.DataInputStream;
 

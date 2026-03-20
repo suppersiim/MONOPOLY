@@ -1,5 +1,7 @@
 package server;
 
+import common.GamePacket;
+
 import java.io.*;
 import java.net.Socket;
 

@@ -1,7 +1,7 @@
 package client;
 
-import server.GamePacket;
-import server.PacketType;
+import common.GamePacket;
+import common.PacketType;
 
 public class PacketHandler {
     private final Game game;

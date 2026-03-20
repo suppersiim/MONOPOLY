@@ -1,5 +1,8 @@
 package server;
 
+import common.GamePacket;
+import common.PacketType;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,12 +14,12 @@ public class GameServer {
     public final int PORT;
     private final List<ClientHandler> clents;
 
-    private GameState gameState;
+    private final GameManager gameManager;
 
     public GameServer(int PORT) {
         this.PORT = PORT;
         this.clents = new ArrayList<>();
-        this.gameState = new GameState(this);
+        this.gameManager = new GameManager(this);
     }
 
     // Start the game server
@@ -30,7 +33,7 @@ public class GameServer {
 
                 clents.add(clientHandler);
                 new Thread(clientHandler).start();
-                clientHandler.send(new GamePacket(PacketType.SERVER_GAME_STATE_UPDATE, gameState.serialize()));
+                clientHandler.send(new GamePacket(PacketType.SERVER_GAME_STATE_UPDATE, gameManager.getGameState().serialize()));
             }
         } catch (Exception e) {
             System.out.println("Error starting server (receiver): " + e.getMessage());
@@ -43,7 +46,7 @@ public class GameServer {
         }
     }
 
-    public GameState getGameState() {
-        return gameState;
+    public GameManager getGameManager() {
+        return gameManager;
     }
 }
