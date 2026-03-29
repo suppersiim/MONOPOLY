@@ -1,7 +1,8 @@
 package game_logic.NonOwnableSquare;
 
-public abstract class NonOwnableSquare {
+import game_logic.Square;
 
+public abstract class NonOwnableSquare extends Square {
 
 
 }
