@@ -1,12 +1,14 @@
 package game_logic;
 
+import game_logic.OwnableSquare.Street;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Player{
     private String name;
     private int money;
-    private List<Property> properties;
+    private List<Street> properties;
     private int location;
     private boolean inJail;
 
@@ -34,12 +36,12 @@ public class Player{
         return money;
     }
 
-    public void buy(Property property){
+    public void buy(Street street){
         //money-=property.cost; need to get info from property
-        properties.add(property);
+        properties.add(street);
     }
 
-    public void payRent(Property property){
+    public void payRent(Street property){
         //money-=property.rent; need to get info from property
     }
 
