@@ -17,4 +17,10 @@ public class Utility extends OwnableSquare{
         else return 0;
     }
 
+    @Override
+    public void landOn(Player player) {
+         // when a player lands on a utility, they must pay rent to the owner based on the dice roll and the number of utilities owned by the owner
+         // if the utility is not owned, the player can choose to buy it or not
+         // if the player decides not to buy it, the utility goes to auction and other players can bid for it
+    }
 }

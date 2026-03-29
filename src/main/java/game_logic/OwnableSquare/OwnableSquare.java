@@ -1,8 +1,9 @@
 package game_logic.OwnableSquare;
 
 import game_logic.Player;
+import game_logic.Square;
 
-public abstract class OwnableSquare {
+public abstract class OwnableSquare extends Square {
 
         private Player owner;
         private int rent;
@@ -12,6 +13,7 @@ public abstract class OwnableSquare {
             this.owner = owner;
         }
 
+        // abstact method that every type of property can implement differently
         public abstract int calculateRent();
 
         public Player getOwner() {
