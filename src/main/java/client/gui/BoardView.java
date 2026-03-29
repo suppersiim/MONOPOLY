@@ -40,7 +40,7 @@ public class BoardView extends BorderPane {
 
         //send to server
         rollButton.setOnAction(e -> {
-            System.out.println("Veeretan...");
+            System.out.println("Rolling...");
             try {
                 game.getClient().send(new GamePacket(PacketType.ROLL, new byte[0]));
             } catch (IOException ex) {
