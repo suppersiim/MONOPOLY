@@ -7,10 +7,12 @@ public abstract class OwnableSquare {
         private Player owner;
         private int rent;
 
-        public OwnableSquare(int rent) {
+        public OwnableSquare(int rent, Player owner) {
             this.rent = rent;
-            this.owner = null;
+            this.owner = owner;
         }
+
+        public abstract int calculateRent();
 
         public Player getOwner() {
             return owner;
