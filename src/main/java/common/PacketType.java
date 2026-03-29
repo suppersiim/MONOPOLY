@@ -4,6 +4,7 @@ public enum PacketType {
 
     // client packets
     CLIENT_TEST,
+    ROLL,
 
     // server packets
     SERVER_GAME_STATE_UPDATE,
