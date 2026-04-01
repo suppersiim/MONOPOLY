@@ -2,10 +2,11 @@ package game_logic;
 
 import game_logic.OwnableSquare.Street;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Player{
+public class Player implements Serializable {
     private String name;
     private int money;
     private List<Street> properties;

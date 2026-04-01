@@ -1,6 +1,8 @@
 package game_logic;
 
-public abstract class Square {
+import java.io.Serializable;
+
+public abstract class Square implements Serializable {
 
     private int squareIndex;
 

@@ -11,7 +11,12 @@ public class PacketHandler {
     }
 
     private void handleGameStateUpdate(GamePacket packet) {
-        game.getGameState().deserialize(packet.getData());
+        System.out.println("Received game state update from server");
+        try {
+            game.getGameState().deserialize(packet.getData());
+        } catch (Exception e) {
+            System.out.println("Error deserializing game state: " + e.getMessage());
+        }
     }
 
     public void handlePacket(GamePacket packet) {
