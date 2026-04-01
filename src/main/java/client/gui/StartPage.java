@@ -30,9 +30,12 @@ public class StartPage {
             String ip = ipInput.getText();
 
             try {
-                Game game = new Game(ip, 8080);
-
                 System.out.println(name + " connecting to " + ip);
+                Game game = Game.createInstance(ip, 8080);
+                game.connect();
+                game.getClient().sendJoinGame(name);
+                game.getClient().sendStartGame();
+
                 BoardView board = new BoardView(game);
 
                 Scene boardScene = new Scene(board, 1000, 700);

@@ -3,8 +3,9 @@ package common;
 public enum PacketType {
 
     // client packets
-    CLIENT_TEST,
-    ROLL,
+    CLIENT_JOIN,
+    CLIENT_START_GAME,
+    CLIENT_ROLL,
 
     // server packets
     SERVER_GAME_STATE_UPDATE,
