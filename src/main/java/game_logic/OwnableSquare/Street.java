@@ -9,6 +9,7 @@ public class Street extends OwnableSquare{
     private int numberOfHouses;
     private int streetNumber;
 
+    //nimi, rent, värv konstruktorisse
     public Street(int rent, Player owner) {
         super(rent, owner);
     }
