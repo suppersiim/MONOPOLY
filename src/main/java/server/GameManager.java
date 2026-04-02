@@ -2,20 +2,18 @@ package server;
 
 import common.GamePacket;
 import common.PacketType;
-import game_logic.Monopoly;
+import game_logic.MonopolyData;
 import game_logic.Player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class GameManager {
 
     private final GameServer server;
     private List<String> joinedPlayers = new ArrayList<>();
 
-    private Monopoly gameState = null;
+    private Monopoly game = null;
 
     protected GameManager(GameServer server) {
         this.server = server;
@@ -25,21 +23,21 @@ public class GameManager {
      * Broadcast current game state to all clients. Should be called whenever the game state changes.
      */
     protected void broadcastGameState() {
-        if (gameState == null) {
+        if (game == null) {
             System.out.println("Game state is not initialized; skipping broadcast.");
             return;
         }
 
         try {
-            GamePacket packet = new GamePacket(PacketType.SERVER_GAME_STATE_UPDATE, gameState.serialize());
+            GamePacket packet = new GamePacket(PacketType.SERVER_GAME_STATE_UPDATE, game.serialize());
             server.sendToAllClients(packet);
         } catch (Exception e) {
             System.out.println("Error sending game state to clients: " + e.getMessage());
         }
     }
 
-    public Monopoly getGameState() {
-        return gameState;
+    public Monopoly getGame() {
+        return game;
     }
 
     public void addPlayer(String playerName) {
@@ -53,7 +51,7 @@ public class GameManager {
             return;
         }
         System.out.println("Starting game with players: " + String.join(", ", joinedPlayers));
-        gameState = new Monopoly(joinedPlayers.stream().map(Player::new).toList());
+        game = new Monopoly(joinedPlayers.stream().map(Player::new).toList());
         broadcastGameState();
     }
 }

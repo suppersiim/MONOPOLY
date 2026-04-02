@@ -1,12 +1,12 @@
 package client;
 
-import game_logic.Monopoly;
+import game_logic.MonopolyData;
 
 public class Game {
 
     private static Game instance;
 
-    private Monopoly gameState = new Monopoly(null);
+    private MonopolyData gameState = new MonopolyData(null);
     private final GameClient gameClient;
     private volatile boolean running = false;
 
@@ -36,7 +36,7 @@ public class Game {
         return gameClient;
     }
 
-    public Monopoly getGameState() {
+    public MonopolyData getGameState() {
         return gameState;
     }
 

@@ -2,7 +2,7 @@ package server;
 
 import common.GamePacket;
 import common.PacketType;
-import game_logic.Monopoly;
+import game_logic.MonopolyData;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -26,12 +26,12 @@ public class PacketHandler {
     }
 
     private void handleRollPacket(DataInputStream data) throws IOException {
-        Monopoly gameState = gameServer.getGameManager().getGameState();
-        if (gameState == null) {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null) {
             System.out.println("No game state available; cannot handle roll packet.");
             return;
         }
-        gameState.onTurn();
+        monopoly.onTurn();
         gameServer.getGameManager().broadcastGameState();
     }
 

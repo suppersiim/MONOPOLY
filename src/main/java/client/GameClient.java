@@ -70,6 +70,10 @@ public class GameClient {
         game.getClient().send(packet);
     }
 
+    public void payRent(int amount) {
+        //TODO
+    }
+
     public boolean getRunning() {
         return running;
     }

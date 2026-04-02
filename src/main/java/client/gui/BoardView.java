@@ -1,8 +1,6 @@
 package client.gui;
 
-import common.GamePacket;
-import common.PacketType;
-import game_logic.Monopoly;
+import game_logic.MonopolyData;
 import game_logic.Player;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -86,7 +84,7 @@ public class BoardView extends BorderPane {
     }
 
     // update pieces on the board
-    public void update(Monopoly state) {
+    public void update(MonopolyData state) {
         // remove old
         for (Circle token : playerTokens) {
             ((StackPane)token.getParent()).getChildren().remove(token);
