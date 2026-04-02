@@ -37,6 +37,10 @@ public class Player implements Serializable {
         return money;
     }
 
+    public void setLocation(int location) {
+        this.location = location;
+    }
+
     public void buy(Street street){
         //money-=property.cost; need to get info from property
         properties.add(street);
@@ -46,11 +50,15 @@ public class Player implements Serializable {
         //money-=property.rent; need to get info from property
     }
 
+    public void pay(int amount){
+        money+=amount;
+    }
+
 
 
     public void move(int moves){
         if (location+moves>=40){
-            location = location+moves%40;
+            location = (location+moves)%40;
             money+=200;
         }
         else location+=moves;
