@@ -1,8 +1,6 @@
 package server;
 
 import common.GamePacket;
-import common.PacketType;
-import game_logic.Monopoly;
 
 import java.io.IOException;
 import java.net.ServerSocket;
