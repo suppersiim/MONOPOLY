@@ -9,11 +9,13 @@ public class Street extends OwnableSquare{
     private int numberOfHouses;
     private int streetNumber;
 
-    //nimi, rent, värv konstruktorisse
-    public Street(int rent, Player owner) {
+    public Street(int rent, Player owner, String color, int sector, int numberOfHouses, int streetNumber) {
         super(rent, owner);
+        this.color = color;
+        this.sector = sector;
+        this.numberOfHouses = numberOfHouses;
+        this.streetNumber = streetNumber;
     }
-
 
     public int numberOfStreetsInColorSet(){
         // only brown and dark blue colored streets have 2 streets in color set
