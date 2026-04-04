@@ -1,51 +1,46 @@
 package client;
 
-import common.GamePacket;
-import common.GameState;
-import common.PacketType;
-
-import java.io.DataInputStream;
+import game_logic.MonopolyData;
 
 public class Game {
-    private final GameState gameState;
+
+    private static Game instance;
+
+    private MonopolyData gameState = new MonopolyData(null);
     private final GameClient gameClient;
     private volatile boolean running = false;
 
-    public Game(String host, int port) {
+    private Game(String host, int port) {
         this.gameClient = new GameClient(this, host, port);
-        gameState = new GameState();
     }
 
-    public void start() throws Exception {
+    public static Game createInstance(String host, int port) throws Exception {
+        if (instance != null) {
+            instance.disconnect();
+        }
+        instance = new Game(host, port);
+        return instance;
+    }
+
+    public void connect() throws Exception {
         gameClient.connect();
         running = true;
-        // TODO: UI ja muu kraam
-
-        DataInputStream cmdIn = new DataInputStream(System.in);
-        while (running) {
-            String line = cmdIn.readLine();
-            gameClient.send(new GamePacket(PacketType.CLIENT_TEST, line.getBytes()));
-        }
     }
 
-    public void stop() throws Exception {
+    public void disconnect() throws Exception {
         running = false;
         gameClient.disconnect();
-        // TODO: cleanup
-    }
-
-    /**
-     * Update the game and UI. Called after game state changed.
-     */
-    public void update() {
-        System.out.println("dbg current player: " + gameState.getCurrentPlayer());
     }
 
     public GameClient getClient() {
         return gameClient;
     }
 
-    public GameState getGameState() {
+    public MonopolyData getGameState() {
         return gameState;
+    }
+
+    public static Game getInstance() {
+        return instance;
     }
 }

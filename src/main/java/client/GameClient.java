@@ -1,6 +1,7 @@
 package client;
 
 import common.GamePacket;
+import common.PacketType;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -46,11 +47,31 @@ public class GameClient {
         System.out.println("Received packet: " + packet.getType());
         packetHandler.handlePacket(packet);
 
-        game.update();
+        System.out.println("Handled packet, we should update GUI now");
     }
 
     public void disconnect() throws IOException {
+        running = false;
         if (socket != null) socket.close();
+    }
+
+    public void sendJoinGame(String playerName) throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_JOIN, playerName.getBytes());
+        game.getClient().send(packet);
+    }
+
+    public void sendStartGame() throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_START_GAME, new byte[0]);
+        game.getClient().send(packet);
+    }
+
+    public void sendRoll() throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_ROLL, new byte[0]);
+        game.getClient().send(packet);
+    }
+
+    public void payRent(int amount) {
+        //TODO
     }
 
     public boolean getRunning() {

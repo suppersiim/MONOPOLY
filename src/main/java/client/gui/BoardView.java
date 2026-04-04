@@ -1,8 +1,6 @@
 package client.gui;
 
-import common.GamePacket;
-import common.GameState;
-import common.PacketType;
+import game_logic.MonopolyData;
 import game_logic.Player;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -42,7 +40,7 @@ public class BoardView extends BorderPane {
         rollButton.setOnAction(e -> {
             System.out.println("Rolling...");
             try {
-                game.getClient().send(new GamePacket(PacketType.ROLL, new byte[0]));
+                game.getClient().sendRoll();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -86,7 +84,7 @@ public class BoardView extends BorderPane {
     }
 
     // update pieces on the board
-    public void update(GameState state) {
+    public void update(MonopolyData state) {
         // remove old
         for (Circle token : playerTokens) {
             ((StackPane)token.getParent()).getChildren().remove(token);

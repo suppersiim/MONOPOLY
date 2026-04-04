@@ -1,27 +1,17 @@
-package game_logic;
+package server;
+
+import game_logic.MonopolyData;
+import game_logic.Player;
+import game_logic.Square;
 
 import java.util.List;
 
-public class Monopoly{
-    private List<Player> players;
-    private int currentPlayer;
-    private List<Square> squares;
-
+public class Monopoly extends MonopolyData {
     public Monopoly(List<Player> players) {
-        this.players = players;
-        this.currentPlayer = 0;
-    }
-
-    public List<Player> getPlayers() {
-        return players;
-    }
-
-    public int getCurrentPlayer() {
-        return currentPlayer;
+        super(players);
     }
 
     public int[] diceRoll(){
-        int[] dice = new int[2];
         dice[0] = (int)(Math.random()*6+1);
         dice[1] = (int)(Math.random()*6+1);
         return dice;
@@ -38,19 +28,13 @@ public class Monopoly{
             if (dice[0] == dice[1]) {
                 doubles += 1;
                 if (doubles == 3) {
-                    players.get(currentPlayer).goJail();
+                    players.get(currentPlayer).goToJail();
                 }
             }
             players.get(currentPlayer).move(dice[0] + dice[1]);
 
             Square squareCurrent = landedOn(players.get(currentPlayer).getLocation());
+            System.out.println("Player " + players.get(currentPlayer).getName() + " rolled " + dice[0] + " and " + dice[1] + " and landed on square " + players.get(currentPlayer).getLocation());
         }
-
-
     }
-
-
-
-
-
 }

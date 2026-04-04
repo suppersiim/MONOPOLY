@@ -6,15 +6,15 @@ public class Street extends OwnableSquare{
 
     private String color;
     private int sector;
+    private String streetName;
     private int numberOfHouses;
     private int streetNumber;
 
-    public Street(int rent, Player owner, String color, int sector, int numberOfHouses, int streetNumber) {
+    public Street(int rent, Player owner, String color, int sector,String streetName) {
         super(rent, owner);
         this.color = color;
         this.sector = sector;
-        this.numberOfHouses = numberOfHouses;
-        this.streetNumber = streetNumber;
+        this.streetName = streetName;
     }
 
     public int numberOfStreetsInColorSet(){
@@ -45,9 +45,20 @@ public class Street extends OwnableSquare{
 
 
     @Override
-    public void landOn(Player player) {
+    public void landOn(Player player, int squareIndex) {
         // if this property is owned by another player, the current player pays rent to the owner
         // if this property is not owned by any player, the current player can choose to buy it or not
         // if the current player decides not to buy it, the property goes to auction and other players can bid for it
+
+        if (getOwner() == null){
+            // offer to buy the street
+            // if the player doesn't buy - the street goes to auction and other players can bid for it
+
+        } else {
+            // if the street is owned by another player, the current player pays rent to the owner
+            int rent = calculateRent();
+            player.payRentToPlayer(rent, getOwner());
+        }
+
     }
 }

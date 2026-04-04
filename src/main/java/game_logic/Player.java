@@ -2,10 +2,11 @@ package game_logic;
 
 import game_logic.OwnableSquare.Street;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Player{
+public class Player implements Serializable {
     private String name;
     private int money;
     private List<Street> properties;
@@ -41,11 +42,18 @@ public class Player{
         properties.add(street);
     }
 
-    public void payRent(Street property){
-        //money-=property.rent; need to get info from property
+    public void addMoney(int money){
+        this.money += money;
     }
 
+    public void payTax(int tax){
+        this.money -= tax;
+    }
 
+    public void payRentToPlayer(int rent, Player owner){
+        this.money -= rent;
+        owner.addMoney(rent);
+    }
 
     public void move(int moves){
         if (location+moves>=40){
@@ -55,7 +63,7 @@ public class Player{
         else location+=moves;
     }
 
-    public void goJail(){
+    public void goToJail(){
         location = 10;
         inJail = true;
     }

@@ -1,7 +1,6 @@
 package server;
 
 import common.GamePacket;
-import common.PacketType;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -33,7 +32,6 @@ public class GameServer {
 
                 clents.add(clientHandler);
                 new Thread(clientHandler).start();
-                clientHandler.send(new GamePacket(PacketType.SERVER_GAME_STATE_UPDATE, gameManager.getGameState().serialize()));
             }
         } catch (Exception e) {
             System.out.println("Error starting server (receiver): " + e.getMessage());
