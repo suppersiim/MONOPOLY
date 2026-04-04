@@ -42,11 +42,18 @@ public class Player implements Serializable {
         properties.add(street);
     }
 
-    public void payRent(Street property){
-        //money-=property.rent; need to get info from property
+    public void addMoney(int money){
+        this.money += money;
     }
 
+    public void payTax(){
+        this.money -= 200;
+    }
 
+    public void payRentToPlayer(int rent, Player owner){
+        this.money -= rent;
+        owner.addMoney(rent);
+    }
 
     public void move(int moves){
         if (location+moves>=40){
@@ -56,7 +63,7 @@ public class Player implements Serializable {
         else location+=moves;
     }
 
-    public void goJail(){
+    public void goToJail(){
         location = 10;
         inJail = true;
     }

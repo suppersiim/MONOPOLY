@@ -17,7 +17,7 @@ public class RailRoad extends OwnableSquare{
     }
 
     @Override
-    public void landOn(Player player) {
+    public void landOn(Player player, int squareIndex) {
         // if this property is owned by another player, the current player pays rent to the owner
         // if this property is not owned by any player, the current player can choose to buy it or not
         // if the current player decides not to buy it, the property goes to auction and other players can bid for it

@@ -13,7 +13,6 @@ public class Street extends OwnableSquare{
         super(rent, owner);
     }
 
-
     public int numberOfStreetsInColorSet(){
         // only brown and dark blue colored streets have 2 streets in color set
         if (color.equals("brown") || color.equals("dark blue")) return 2;
@@ -42,9 +41,20 @@ public class Street extends OwnableSquare{
 
 
     @Override
-    public void landOn(Player player) {
+    public void landOn(Player player, int squareIndex) {
         // if this property is owned by another player, the current player pays rent to the owner
         // if this property is not owned by any player, the current player can choose to buy it or not
         // if the current player decides not to buy it, the property goes to auction and other players can bid for it
+
+        if (getOwner() == null){
+            // offer to buy the street
+            // if the player doesn't buy - the street goes to auction and other players can bid for it
+
+        } else {
+            // if the street is owned by another player, the current player pays rent to the owner
+            int rent = calculateRent();
+            player.payRentToPlayer(rent, getOwner());
+        }
+
     }
 }

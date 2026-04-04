@@ -28,7 +28,7 @@ public class Monopoly extends MonopolyData {
             if (dice[0] == dice[1]) {
                 doubles += 1;
                 if (doubles == 3) {
-                    players.get(currentPlayer).goJail();
+                    players.get(currentPlayer).goToJail();
                 }
             }
             players.get(currentPlayer).move(dice[0] + dice[1]);
