@@ -23,8 +23,18 @@ public class Chance extends NonOwnableSquare {
             "Your building loan matures. Collect $150"
     };
 
-    @Override
-    public void landOn(Player player, int squareIndex) {
+    public String getRandomCard() {
+        int randomIndex = (int) (Math.random() * chanceCards.length);
+        return chanceCards[randomIndex];
+    }
 
+    @Override
+    public void landOn(Player player) {
+        String card = getRandomCard();
+        // Here you would implement the logic to apply the effect of the card to the player
+        // For example, if the card is "Advance to Go (Collect $200)", you would move the player to the Go square and give them $200
+        // This is just a placeholder and should be expanded based on the actual effects of each card
+        System.out.println(player.getName() + " drew a Chance card: " + card);
+        // TODO: every card you pull has an effect to the player - implement all these functions
     }
 }
