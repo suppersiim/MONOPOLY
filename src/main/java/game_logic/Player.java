@@ -1,5 +1,6 @@
 package game_logic;
 
+import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.Street;
 
 import java.io.Serializable;
@@ -9,7 +10,7 @@ import java.util.List;
 public class Player implements Serializable {
     private String name;
     private int money;
-    private List<Street> properties;
+    private List<OwnableSquare> properties;
     private int location;
     private boolean inJail;
 
@@ -37,6 +38,10 @@ public class Player implements Serializable {
         return money;
     }
 
+    public List<OwnableSquare> getProperties(Player player) {
+        return player.properties;
+    }
+
     public void buy(Street street){
         //money-=property.cost; need to get info from property
         properties.add(street);
@@ -46,8 +51,8 @@ public class Player implements Serializable {
         this.money += money;
     }
 
-    public void payTax(){
-        this.money -= 200;
+    public void payTax(int tax){
+        this.money -= tax;
     }
 
     public void payRentToPlayer(int rent, Player owner){
