@@ -42,6 +42,28 @@ public class PacketHandler {
             return;
         }
         monopoly.onTurn();
+        //If onTurn() paused for a buy decision, send an offer to the current player only
+        if (monopoly.isWaitingForBuyResponse()) {
+            String name = monopoly.getPendingPurchase().getName();
+            int price = monopoly.getPendingPurchase().getPrice();
+            String payload = name + ":" + price;
+            client.send(new GamePacket(PacketType.SERVER_BUY_OFFER, payload));
+        }
+
+
+
+        gameServer.getGameManager().broadcastGameState();
+    }
+
+    private void handleBuyResponsePacket(DataInputStream data) throws IOException {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null || !monopoly.isWaitingForBuyResponse()) {
+            System.out.println("Received unexpected buy response; ignoring.");
+            return;
+        }
+        String response = new String(data.readAllBytes()).trim();
+        boolean accepted = response.equalsIgnoreCase("yes");
+        monopoly.resolveBuy(accepted);
         gameServer.getGameManager().broadcastGameState();
     }
 
@@ -66,6 +88,9 @@ public class PacketHandler {
                     break;
                 case CLIENT_ROLL:
                     handleRollPacket(data);
+                    break;
+                case CLIENT_BUY_RESPONSE:
+                    handleBuyResponsePacket(data);
                     break;
                 case QUIT:
                     handleQuitPacket(data);

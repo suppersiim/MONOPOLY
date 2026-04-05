@@ -6,8 +6,7 @@ import game_logic.Player;
 import game_logic.Square;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -17,6 +16,7 @@ import client.Game;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BoardView extends BorderPane {
     private final Game game;
@@ -56,12 +56,42 @@ public class BoardView extends BorderPane {
             }
         });
 
-        game.getClient().getPacketHandler().setOnGameStateUpdate(state -> Platform.runLater(() -> update(state)));
+        // Game state updates
+        game.getClient().getPacketHandler().setOnGameStateUpdate(
+                state -> Platform.runLater(() -> update(state)));
+
+        // Buy offer dialog — only shown to the player who landed on the property
+        game.getClient().getPacketHandler().setOnBuyOffer((propertyName, price) ->
+                Platform.runLater(() -> showBuyDialog(propertyName, price)));
 
         controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton);
         this.setRight(controls);
 
         update(game.getGameState());
+    }
+
+    /**
+     * Shows a confirmation dialog asking whether the player wants to buy the property.
+     * Sends the response to the server regardless of what the player chooses.
+     */
+    private void showBuyDialog(String propertyName, int price) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Buy Property?");
+        alert.setHeaderText(propertyName);
+        alert.setContentText("Would you like to buy " + propertyName + " for $" + price + "?");
+
+        ButtonType buyButton = new ButtonType("Buy ($" + price + ")");
+        ButtonType skipButton = new ButtonType("Skip", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(buyButton, skipButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        boolean accepted = result.isPresent() && result.get() == buyButton;
+
+        try {
+            game.getClient().sendBuyResponse(accepted);
+        } catch (IOException e) {
+            System.out.println("Error sending buy response: " + e.getMessage());
+        }
     }
 
     private void setupBoard() {

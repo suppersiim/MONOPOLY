@@ -7,10 +7,12 @@ public abstract class OwnableSquare extends Square {
 
     private Player owner;
     private int rent;
+    private int price;
 
-    public OwnableSquare(int rent, String name) {
+    public OwnableSquare(int rent,int price, String name) {
         super(name);
         this.rent = rent;
+        this.price = price;
     }
 
     // abstact method that every type of property can implement differently
@@ -26,5 +28,9 @@ public abstract class OwnableSquare extends Square {
 
     public int getRent() {
         return rent;
+    }
+
+    public int getPrice() {
+        return price;
     }
 }

@@ -10,8 +10,8 @@ public class Street extends OwnableSquare{
     private int numberOfHouses;
     private int streetNumber;
 
-    public Street(int rent, Color color, int sector, String name) {
-        super(rent, name);
+    public Street(int rent, int price, Color color, int sector, String name) {
+        super(rent, price, name);
         this.color = color.toString();
         this.sector = sector;
     }

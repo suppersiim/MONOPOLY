@@ -64,6 +64,12 @@ public class GameClient {
         game.getClient().send(packet);
     }
 
+    public void sendBuyResponse(boolean accepted) throws IOException {
+        String response = accepted ? "yes" : "no";
+        GamePacket packet = new GamePacket(PacketType.CLIENT_BUY_RESPONSE, response);
+        send(packet);
+    }
+
     public void payRent(int amount) {
         //TODO
     }

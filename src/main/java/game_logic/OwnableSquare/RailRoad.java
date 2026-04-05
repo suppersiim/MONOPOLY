@@ -6,8 +6,8 @@ public class RailRoad extends OwnableSquare{
 
     //private int numberOfTrainStationsOwned;
 
-    public RailRoad(int rent, String name) {
-        super(rent, name);
+    public RailRoad(int rent, int price, String name) {
+        super(rent, price, name);
     }
 
     @Override
