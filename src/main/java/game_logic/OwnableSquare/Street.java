@@ -23,7 +23,8 @@ public class Street extends OwnableSquare{
     }
 
     public boolean isColorSetComplete(){
-        // Determine if one player has all the streets from one color aka the color set is complete!
+        // TODO: Determine if one player has all the streets from one color aka the color set is complete!
+        // NB! DARK BLUE and BROWN have 2 streets in the colorset
         return true;
     }
 
