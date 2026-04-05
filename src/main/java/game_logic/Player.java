@@ -1,6 +1,9 @@
 package game_logic;
 
+import game_logic.OwnableSquare.OwnableSquare;
+import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
+import game_logic.OwnableSquare.Utility;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -9,7 +12,7 @@ import java.util.List;
 public class Player implements Serializable {
     private String name;
     private int money;
-    private List<Street> properties;
+    private List<OwnableSquare> properties;
     private int location;
     private boolean inJail;
 
@@ -37,8 +40,8 @@ public class Player implements Serializable {
         return money;
     }
 
-    public void setLocation(int location) {
-        this.location = location;
+    public List<OwnableSquare> getProperties(Player player) {
+        return player.properties;
     }
 
     public void buy(Street street){
@@ -46,15 +49,18 @@ public class Player implements Serializable {
         properties.add(street);
     }
 
-    public void payRent(Street property){
-        //money-=property.rent; need to get info from property
+    public void addMoney(int money){
+        this.money += money;
     }
 
-    public void pay(int amount){
-        money+=amount;
+    public void payTax(int tax){
+        this.money -= tax;
     }
 
-
+    public void payRentToPlayer(int rent, Player owner){
+        this.money -= rent;
+        owner.addMoney(rent);
+    }
 
     public void move(int moves){
         if (location+moves>=40){
@@ -64,10 +70,49 @@ public class Player implements Serializable {
         else location+=moves;
     }
 
-    public void goJail(){
+    public void goToJail(){
         location = 10;
         inJail = true;
     }
 
+    public void payFineToGetOutOfJail(){
+        money -= 50;
+        inJail = false;
+    }
+
+    public List<RailRoad> railRoadsOwned(){
+        List<RailRoad> railRoadsOwned = new ArrayList<>();
+        for (OwnableSquare property : properties){
+            if (property instanceof RailRoad){
+                railRoadsOwned.add((RailRoad) property);
+            }
+        }
+        return railRoadsOwned;
+    }
+
+    public List<Street> streetsOwned(){
+        List<Street> streetsOwned = new ArrayList<>();
+        for (OwnableSquare property : properties){
+            if (property instanceof Street){
+                streetsOwned.add((Street) property);
+            }
+        }
+        return streetsOwned;
+    }
+
+    public List<Utility> utilitiesOwned(){
+        List<Utility> utilitiesOwned = new ArrayList<>();
+        for (OwnableSquare property : properties){
+            if (property instanceof Utility){
+                utilitiesOwned.add((Utility) property);
+            }
+        }
+        return utilitiesOwned;
+    }
+
+    public boolean isBankrupt(){
+        // TODO: check if player has any money (has houses? can mortgage something? has cash?)
+        return false;
+    }
 
 }

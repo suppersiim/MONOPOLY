@@ -1,5 +1,6 @@
-package client;
+package client.client;
 
+import client.Game;
 import common.GamePacket;
 import common.PacketType;
 
@@ -43,20 +44,13 @@ public class GameClient {
         out.flush();
     }
 
-    public void onReceivePacket(GamePacket packet) {
-        System.out.println("Received packet: " + packet.getType());
-        packetHandler.handlePacket(packet);
-
-        System.out.println("Handled packet, we should update GUI now");
-    }
-
     public void disconnect() throws IOException {
         running = false;
         if (socket != null) socket.close();
     }
 
-    public void sendJoinGame(String playerName) throws IOException {
-        GamePacket packet = new GamePacket(PacketType.CLIENT_JOIN, playerName.getBytes());
+    public void sendJoinGame() throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_JOIN, game.getPlayerName().getBytes());
         game.getClient().send(packet);
     }
 
@@ -76,5 +70,9 @@ public class GameClient {
 
     public boolean getRunning() {
         return running;
+    }
+
+    public PacketHandler getPacketHandler() {
+        return packetHandler;
     }
 }

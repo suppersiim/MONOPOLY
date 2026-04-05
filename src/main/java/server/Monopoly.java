@@ -1,12 +1,12 @@
 package server;
 
-import game_logic.MonopolyData;
+import game_logic.GameState;
 import game_logic.Player;
 import game_logic.Square;
 
 import java.util.List;
 
-public class Monopoly extends MonopolyData {
+public class Monopoly extends GameState {
     public Monopoly(List<Player> players) {
         super(players);
     }
@@ -17,10 +17,6 @@ public class Monopoly extends MonopolyData {
         return dice;
     }
 
-    public Square landedOn(int location){
-        return squares.get(location);
-    }
-
     public void onTurn(){
         if (!players.get(currentPlayer).isInJail()) {
             int doubles = 0;
@@ -28,13 +24,14 @@ public class Monopoly extends MonopolyData {
             if (dice[0] == dice[1]) {
                 doubles += 1;
                 if (doubles == 3) {
-                    players.get(currentPlayer).goJail();
+                    players.get(currentPlayer).goToJail();
                 }
             }
             players.get(currentPlayer).move(dice[0] + dice[1]);
 
-            Square squareCurrent = landedOn(players.get(currentPlayer).getLocation());
+            Square squareCurrent = getSquare(players.get(currentPlayer).getLocation());
             System.out.println("Player " + players.get(currentPlayer).getName() + " rolled " + dice[0] + " and " + dice[1] + " and landed on square " + players.get(currentPlayer).getLocation());
         }
+        currentPlayer = (currentPlayer + 1) % players.size();
     }
 }

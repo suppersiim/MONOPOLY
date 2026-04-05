@@ -4,14 +4,20 @@ import game_logic.Player;
 
 public class Tax extends NonOwnableSquare {
 
-    private int taxAmount = 200;
+    private int taxAmount;
 
-    public int getTaxAmount() {
+    public int getTax() {
         return taxAmount;
+    }
+
+    public Tax(int taxAmount) {
+        super("Tax");
+        this.taxAmount = taxAmount;
     }
 
     @Override
     public void landOn(Player player) {
         // player pays tax amount
+        player.payTax(getTax());
     }
 }

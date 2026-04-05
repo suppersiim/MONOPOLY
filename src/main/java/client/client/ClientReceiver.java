@@ -1,4 +1,4 @@
-package client;
+package client.client;
 
 import common.GamePacket;
 
@@ -19,7 +19,7 @@ public class ClientReceiver implements Runnable {
         try {
             while (client.getRunning()) {
                 GamePacket packet = GamePacket.readFrom(in);
-                client.onReceivePacket(packet);
+                client.getPacketHandler().handlePacket(packet);
             }
         } catch (Exception e) {
             System.out.println("Error receiving packet: " + e.getMessage());

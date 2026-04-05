@@ -13,6 +13,9 @@ public class MainApp extends Application {
         Scene scene = new Scene(startPage.getLayout(), 400, 300);
         primaryStage.setTitle("Monopoly - Start");
         primaryStage.setScene(scene);
+        primaryStage.setOnCloseRequest(event -> {
+            System.exit(0);
+        });
         primaryStage.show();
     }
 

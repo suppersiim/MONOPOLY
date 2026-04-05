@@ -8,6 +8,7 @@ public enum PacketType {
     CLIENT_ROLL,
 
     // server packets
+    SERVER_JOINED_PLAYERS_COUNT,
     SERVER_GAME_STATE_UPDATE,
 
     // general packets

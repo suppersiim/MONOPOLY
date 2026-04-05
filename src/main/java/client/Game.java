@@ -1,25 +1,27 @@
 package client;
 
-import game_logic.MonopolyData;
+import client.client.GameClient;
+import game_logic.GameState;
 
 public class Game {
 
     private static Game instance;
 
-    private MonopolyData gameState = new MonopolyData(null);
+    private String playerName;
+    private GameState gameState = new GameState(null);
     private final GameClient gameClient;
     private volatile boolean running = false;
 
-    private Game(String host, int port) {
+    private Game(String host, int port, String playerName) {
         this.gameClient = new GameClient(this, host, port);
+        this.playerName = playerName;
     }
 
-    public static Game createInstance(String host, int port) throws Exception {
+    public static void createInstance(String host, int port, String playerName) throws Exception {
         if (instance != null) {
             instance.disconnect();
         }
-        instance = new Game(host, port);
-        return instance;
+        instance = new Game(host, port, playerName);
     }
 
     public void connect() throws Exception {
@@ -36,11 +38,15 @@ public class Game {
         return gameClient;
     }
 
-    public MonopolyData getGameState() {
+    public GameState getGameState() {
         return gameState;
     }
 
     public static Game getInstance() {
         return instance;
+    }
+
+    public String getPlayerName() {
+        return playerName;
     }
 }

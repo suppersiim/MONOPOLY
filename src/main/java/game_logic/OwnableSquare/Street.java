@@ -1,6 +1,7 @@
 package game_logic.OwnableSquare;
 
 import game_logic.Player;
+import javafx.scene.paint.Color;
 
 public class Street extends OwnableSquare{
 
@@ -9,19 +10,21 @@ public class Street extends OwnableSquare{
     private int numberOfHouses;
     private int streetNumber;
 
-    public Street(int rent, Player owner) {
-        super(rent, owner);
+    public Street(int rent, Color color, int sector, String name) {
+        super(rent, name);
+        this.color = color.toString();
+        this.sector = sector;
     }
-
 
     public int numberOfStreetsInColorSet(){
         // only brown and dark blue colored streets have 2 streets in color set
-        if (color.equals("brown") || color.equals("dark blue")) return 2;
+        if (color.equals(Color.BROWN.toString()) || color.equals(Color.DARKBLUE.toString())) return 2;
         else return 3;
     }
 
     public boolean isColorSetComplete(){
-        // Determine if one player has all the streets from one color aka the color set is complete!
+        // TODO: Determine if one player has all the streets from one color aka the color set is complete!
+        // NB! DARK BLUE and BROWN have 2 streets in the colorset
         return true;
     }
 
@@ -46,5 +49,23 @@ public class Street extends OwnableSquare{
         // if this property is owned by another player, the current player pays rent to the owner
         // if this property is not owned by any player, the current player can choose to buy it or not
         // if the current player decides not to buy it, the property goes to auction and other players can bid for it
+
+        if (getOwner() == null){
+            // offer to buy the street
+            // TODO: popup window, where the player gets to choose to buy the street or not
+
+            // if the player doesn't buy - the street goes to auction and other players can bid for it
+            //TODO: auction
+
+        } else {
+            // if the street is owned by another player, the current player pays rent to the owner
+            int rent = calculateRent();
+            player.payRentToPlayer(rent, getOwner());
+        }
+
+    }
+
+    public String getColor() {
+        return color;
     }
 }

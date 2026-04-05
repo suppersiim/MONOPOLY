@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class GamePacket {
     private final PacketType type;
@@ -12,6 +14,11 @@ public class GamePacket {
     public GamePacket(PacketType type, byte[] data) {
         this.type = type;
         this.data = data;
+    }
+
+    public GamePacket(PacketType type, String data) {
+        this.type = type;
+        this.data = data.getBytes(StandardCharsets.UTF_8);
     }
 
     public static GamePacket readFrom(DataInputStream stream) throws IOException {
@@ -35,6 +42,8 @@ public class GamePacket {
     public byte[] getData() {
         return data;
     }
+
+    public String getStringData() { return new String(data); }
 
     public PacketType getType() {
         return type;
