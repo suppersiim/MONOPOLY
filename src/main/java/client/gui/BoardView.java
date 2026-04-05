@@ -1,7 +1,10 @@
 package client.gui;
 
-import game_logic.MonopolyData;
+import game_logic.GameState;
+import game_logic.OwnableSquare.Street;
 import game_logic.Player;
+import game_logic.Square;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,6 +24,10 @@ public class BoardView extends BorderPane {
     private List<StackPane> spaces = new ArrayList<>();
     private List<Circle> playerTokens = new ArrayList<>();
     private Label statusLabel;
+    private Label diceLabel;
+    private Label moneyLabel;
+    private Label currentSquareLabel;
+    private Button rollButton;
 
     public BoardView(Game game) {
         this.game = game;
@@ -34,7 +41,10 @@ public class BoardView extends BorderPane {
         controls.setPrefWidth(200);
 
         statusLabel = new Label("Your turn");
-        Button rollButton = new Button("Roll dice");
+        diceLabel = new Label("Dice: * - *");
+        rollButton = new Button("Roll dice");
+        moneyLabel = new Label("Money: ");
+        currentSquareLabel = new Label("Current square: Go");
 
         //send to server
         rollButton.setOnAction(e -> {
@@ -46,8 +56,12 @@ public class BoardView extends BorderPane {
             }
         });
 
-        controls.getChildren().addAll(statusLabel, rollButton);
+        game.getClient().getPacketHandler().setOnGameStateUpdate(state -> Platform.runLater(() -> update(state)));
+
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton);
         this.setRight(controls);
+
+        update(game.getGameState());
     }
 
     private void setupBoard() {
@@ -78,13 +92,23 @@ public class BoardView extends BorderPane {
         rect.setFill(Color.WHITE);
         rect.setStroke(Color.BLACK);
 
-        Label label = new Label(String.valueOf(index));
+        Square square = game.getGameState().getSquare(index);
+        Label label = new Label(square.getName());
+        label.setMaxSize(50, 50);
+        label.setWrapText(true);
         pane.getChildren().addAll(rect, label);
+        if (square instanceof Street street) {
+            Rectangle colorBar = new Rectangle(59, 10);
+            colorBar.setFill(Color.valueOf(street.getColor()));
+            pane.getChildren().add(colorBar);
+            StackPane.setAlignment(colorBar, Pos.TOP_CENTER);
+        }
         return pane;
     }
 
     // update pieces on the board
-    public void update(MonopolyData state) {
+    public void update(GameState state) {
+        System.out.println("Updating board...");
         // remove old
         for (Circle token : playerTokens) {
             ((StackPane)token.getParent()).getChildren().remove(token);
@@ -98,6 +122,18 @@ public class BoardView extends BorderPane {
             spaces.get(p.getLocation()).getChildren().add(token);
         }
 
+        if (state.getCurrentPlayer().getName().equals(game.getPlayerName())) {
+            statusLabel.setText("Your turn");
+            rollButton.setDisable(false);
+        } else {
+            statusLabel.setText(state.getCurrentPlayer().getName() + "'s turn");
+            rollButton.setDisable(true);
+        }
+
+        diceLabel.setText("Dice: " + state.getDice()[0] + " - " + state.getDice()[1]);
+        Player myPlayer = state.getPlayerByName(game.getPlayerName());
+        moneyLabel.setText("Money: " + myPlayer.getMoney());
+        currentSquareLabel.setText("Current square: " + game.getGameState().getSquare(myPlayer.getLocation()).getName());
     }
 
     private Color getPlayerColor(int index) {

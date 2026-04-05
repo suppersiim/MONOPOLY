@@ -62,7 +62,7 @@ public class Player implements Serializable {
 
     public void move(int moves){
         if (location+moves>=40){
-            location = location+moves%40;
+            location = (location+moves)%40;
             money+=200;
         }
         else location+=moves;

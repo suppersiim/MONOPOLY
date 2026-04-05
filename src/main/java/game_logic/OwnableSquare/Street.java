@@ -1,25 +1,24 @@
 package game_logic.OwnableSquare;
 
 import game_logic.Player;
+import javafx.scene.paint.Color;
 
 public class Street extends OwnableSquare{
 
     private String color;
     private int sector;
-    private String streetName;
     private int numberOfHouses;
     private int streetNumber;
 
-    public Street(int rent, Player owner, String color, int sector,String streetName) {
-        super(rent, owner);
-        this.color = color;
+    public Street(int rent, Color color, int sector, String name) {
+        super(rent, name);
+        this.color = color.toString();
         this.sector = sector;
-        this.streetName = streetName;
     }
 
     public int numberOfStreetsInColorSet(){
         // only brown and dark blue colored streets have 2 streets in color set
-        if (color.equals("brown") || color.equals("dark blue")) return 2;
+        if (color.equals(Color.BROWN.toString()) || color.equals(Color.DARKBLUE.toString())) return 2;
         else return 3;
     }
 
@@ -63,5 +62,9 @@ public class Street extends OwnableSquare{
             player.payRentToPlayer(rent, getOwner());
         }
 
+    }
+
+    public String getColor() {
+        return color;
     }
 }

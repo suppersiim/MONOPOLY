@@ -11,6 +11,7 @@ public class Tax extends NonOwnableSquare {
     }
 
     public Tax(int taxAmount) {
+        super("Tax");
         this.taxAmount = taxAmount;
     }
 

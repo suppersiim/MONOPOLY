@@ -5,11 +5,9 @@ import game_logic.Player;
 public class Utility extends OwnableSquare{
 
     private int numberOfUtilitiesOwned;
-    private String utilityName;
 
-    public Utility(int rent, Player owner, String utilityName) {
-        super(rent, owner);
-        this.utilityName = utilityName;
+    public Utility(int rent, String name) {
+        super(rent, name);
     }
 
     @Override

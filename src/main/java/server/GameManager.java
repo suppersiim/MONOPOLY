@@ -2,7 +2,6 @@ package server;
 
 import common.GamePacket;
 import common.PacketType;
-import game_logic.MonopolyData;
 import game_logic.Player;
 
 import java.util.ArrayList;
@@ -43,6 +42,14 @@ public class GameManager {
     public void addPlayer(String playerName) {
         joinedPlayers.add(playerName);
         System.out.println(playerName + " joined the game.");
+    }
+
+    public boolean isPlayerJoined(String playerName) {
+        return joinedPlayers.contains(playerName);
+    }
+
+    public int getJoinedPlayersCount() {
+        return joinedPlayers.size();
     }
 
     public void startGame() {

@@ -1,5 +1,6 @@
 package client.gui;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -9,6 +10,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import client.Game;
 
+import java.io.IOException;
+
 public class StartPage {
     private VBox layout;
 
@@ -17,36 +20,65 @@ public class StartPage {
         layout.setAlignment(Pos.CENTER);
 
         Label title = new Label("Welcome to Monopoly!");
+
+        Label playerCountLabel = new Label("Players: 0");
+
         TextField nameInput = new TextField();
         nameInput.setPromptText("Name");
+        nameInput.setText("Player" + (int)(Math.random() * 100));
 
         TextField ipInput = new TextField();
         ipInput.setPromptText("IP");
+        ipInput.setText("localhost");
 
-        Button startButton = new Button("Join game");
+        Button joinButton = new Button("Join game");
+        Button startButton = new Button("Start game");
+        startButton.setDisable(true);
 
-        startButton.setOnAction(e -> {
+        joinButton.setOnAction(e -> {
             String name = nameInput.getText();
             String ip = ipInput.getText();
 
             try {
                 System.out.println(name + " connecting to " + ip);
-                Game game = Game.createInstance(ip, 8080);
+                Game.createInstance(ip, 8080, name);
+                Game game = Game.getInstance();
                 game.connect();
-                game.getClient().sendJoinGame(name);
-                game.getClient().sendStartGame();
+                game.getClient().getPacketHandler().setOnJoinedPlayersCount(count -> {
+                    Platform.runLater(() -> {
+                        playerCountLabel.setText("Players: " + count);
+                        startButton.setDisable(false);
+                    });
+                });
 
-                BoardView board = new BoardView(game);
+                game.getClient().getPacketHandler().setOnGameStateUpdate(count -> {
+                    Platform.runLater(() -> {
+                        BoardView board = new BoardView(game);
 
-                Scene boardScene = new Scene(board, 1000, 700);
-                stage.setScene(boardScene);
-                stage.centerOnScreen();
+                        Scene boardScene = new Scene(board, 1000, 700);
+                        stage.setScene(boardScene);
+                        stage.centerOnScreen();
+                    });
+                });
+
+                game.getClient().sendJoinGame();
+                joinButton.setDisable(true);
             } catch (Exception ex) {
                 System.out.println("Error connecting: " + ex.getMessage());
             }
         });
 
-        layout.getChildren().addAll(title, nameInput, ipInput, startButton);
+        startButton.setOnAction(e -> {
+            try {
+                Game game = Game.getInstance();
+
+                game.getClient().sendStartGame();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        layout.getChildren().addAll(title, playerCountLabel, nameInput, ipInput, joinButton, startButton);
     }
 
     public VBox getLayout() {

@@ -4,6 +4,10 @@ import game_logic.Player;
 
 public class Chance extends NonOwnableSquare {
 
+    public Chance() {
+        super("Chance");
+    }
+
     private final String[] chanceCards = {
             "Advance to Boardwalk",
             "Advance to Go (Collect $200)",
@@ -38,3 +42,4 @@ public class Chance extends NonOwnableSquare {
         // TODO: every card you pull has an effect to the player - implement all these functions
     }
 }
+

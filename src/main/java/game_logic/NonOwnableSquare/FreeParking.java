@@ -4,8 +4,13 @@ import game_logic.Player;
 
 public class FreeParking extends NonOwnableSquare {
 
+    public FreeParking() {
+        super("Free Parking");
+    }
+
     @Override
     public void landOn(Player player) {
         // All the collected money is given to the player that landed on that square
     }
 }
+

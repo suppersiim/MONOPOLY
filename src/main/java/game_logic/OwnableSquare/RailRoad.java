@@ -5,11 +5,9 @@ import game_logic.Player;
 public class RailRoad extends OwnableSquare{
 
     private int numberOfTrainStationsOwned;
-    private String railRoadName;
 
-    public RailRoad(int rent, Player owner, String railRoadName) {
-        super(rent, owner);
-        this.railRoadName = railRoadName;
+    public RailRoad(int rent, String name) {
+        super(rent, name);
     }
 
     @Override

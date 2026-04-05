@@ -2,7 +2,6 @@ package server;
 
 import common.GamePacket;
 import common.PacketType;
-import game_logic.MonopolyData;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -18,7 +17,18 @@ public class PacketHandler {
 
     private void handleClientJoinPacket(DataInputStream data) throws IOException {
         String playerName = new String(data.readAllBytes());
-        gameServer.getGameManager().addPlayer(playerName);
+        GameManager gameManager = gameServer.getGameManager();
+        if (gameManager.getGame() != null) {
+            System.err.println("Player " + playerName + " tried to join, but game is already running!");
+            return;
+        }
+        if (playerName.isBlank() || playerName.length() > 30 || gameManager.isPlayerJoined(playerName)) {
+            System.err.println("Player " + playerName + " tried to join with invalid name!");
+            return;
+        }
+        gameManager.addPlayer(playerName);
+        int playerCount = gameManager.getJoinedPlayersCount();
+        gameServer.sendToAllClients(new GamePacket(PacketType.SERVER_JOINED_PLAYERS_COUNT, Integer.toString(playerCount)));
     }
 
     private void handleStartGamePacket(DataInputStream data) throws IOException {

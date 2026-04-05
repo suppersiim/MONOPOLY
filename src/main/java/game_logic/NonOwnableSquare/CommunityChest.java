@@ -4,6 +4,10 @@ import game_logic.Player;
 
 public class CommunityChest extends NonOwnableSquare {
 
+    public CommunityChest() {
+        super("Community Chest");
+    }
+
     private final String[] communityChestCards = {
             "Advance to Go (Collect $200)",
             "Bank error in your favor. Collect $200",
@@ -38,3 +42,4 @@ public class CommunityChest extends NonOwnableSquare {
         // TODO: every card you pull has an effect to the player - implement all these functions
     }
 }
+
