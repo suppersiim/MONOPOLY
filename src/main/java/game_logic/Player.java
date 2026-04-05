@@ -1,7 +1,9 @@
 package game_logic;
 
 import game_logic.OwnableSquare.OwnableSquare;
+import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
+import game_logic.OwnableSquare.Utility;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -73,5 +75,44 @@ public class Player implements Serializable {
         inJail = true;
     }
 
+    public void payFineToGetOutOfJail(){
+        money -= 50;
+        inJail = false;
+    }
+
+    public List<RailRoad> railRoadsOwned(){
+        List<RailRoad> railRoadsOwned = new ArrayList<>();
+        for (OwnableSquare property : properties){
+            if (property instanceof RailRoad){
+                railRoadsOwned.add((RailRoad) property);
+            }
+        }
+        return railRoadsOwned;
+    }
+
+    public List<Street> streetsOwned(){
+        List<Street> streetsOwned = new ArrayList<>();
+        for (OwnableSquare property : properties){
+            if (property instanceof Street){
+                streetsOwned.add((Street) property);
+            }
+        }
+        return streetsOwned;
+    }
+
+    public List<Utility> utilitiesOwned(){
+        List<Utility> utilitiesOwned = new ArrayList<>();
+        for (OwnableSquare property : properties){
+            if (property instanceof Utility){
+                utilitiesOwned.add((Utility) property);
+            }
+        }
+        return utilitiesOwned;
+    }
+
+    public boolean isBankrupt(){
+        // TODO: check if player has any money (has houses? can mortgage something? has cash?)
+        return false;
+    }
 
 }

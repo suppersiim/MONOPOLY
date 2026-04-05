@@ -12,8 +12,9 @@ public class Utility extends OwnableSquare{
 
     @Override
     public int calculateRent() {
-        if (numberOfUtilitiesOwned == 1) return 4; // here should be 4 * getDiceRollResult()!!
-        else if (numberOfUtilitiesOwned == 2) return 10; // here should be 10 * getDiceRollResult()!!
+        int diceRoll = 0; // TODO: getDiceRoll()
+        if (getOwner().utilitiesOwned().size() == 1) return (4 * diceRoll);
+        else if (getOwner().utilitiesOwned().size() == 2) return (10 * diceRoll);
         else return 0;
     }
 
