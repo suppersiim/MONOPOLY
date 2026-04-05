@@ -1,14 +1,29 @@
 package server;
 
 import game_logic.GameState;
+import game_logic.OwnableSquare.OwnableSquare;
+import game_logic.OwnableSquare.Utility;
 import game_logic.Player;
 import game_logic.Square;
 
 import java.util.List;
 
 public class Monopoly extends GameState {
+    private int[] doublesCount;
+    private boolean waitingForBuyResponse = false;
+    private OwnableSquare pendingPurchase = null;
+
     public Monopoly(List<Player> players) {
         super(players);
+        doublesCount = new int[players.size()];
+    }
+
+    public boolean isWaitingForBuyResponse() {
+        return waitingForBuyResponse;
+    }
+
+    public OwnableSquare getPendingPurchase() {
+        return pendingPurchase;
     }
 
     public int[] diceRoll(){
@@ -17,21 +32,71 @@ public class Monopoly extends GameState {
         return dice;
     }
 
+    public void resolveBuy(boolean accepted) {
+        Player player = players.get(currentPlayer);
+        if (accepted && pendingPurchase != null && player.getMoney() >= pendingPurchase.getPrice()) {
+            player.buy(pendingPurchase);
+        }
+        // TODO: auction if declined
+        pendingPurchase = null;
+        waitingForBuyResponse = false;
+        currentPlayer = (currentPlayer + 1) % players.size();
+    }
+
     public void onTurn(){
-        if (!players.get(currentPlayer).isInJail()) {
-            int doubles = 0;
+        Player player = players.get(currentPlayer);
+        if (player.isInJail()) {
             int[] dice = diceRoll();
-            if (dice[0] == dice[1]) {
-                doubles += 1;
-                if (doubles == 3) {
-                    players.get(currentPlayer).goToJail();
+            if (dice[0]==dice[1]){
+                player.setInJail(false);
+                doublesCount[currentPlayer] = 0;
+                currentPlayer = (currentPlayer + 1) % players.size();
+            }
+            else {
+                doublesCount[currentPlayer] += 1;
+                if (doublesCount[currentPlayer] == 3) {
+                    player.setInJail(false);
+                    doublesCount[currentPlayer] = 0;
+                    currentPlayer = (currentPlayer + 1) % players.size();
                 }
             }
-            players.get(currentPlayer).move(dice[0] + dice[1]);
-
-            Square squareCurrent = getSquare(players.get(currentPlayer).getLocation());
-            System.out.println("Player " + players.get(currentPlayer).getName() + " rolled " + dice[0] + " and " + dice[1] + " and landed on square " + players.get(currentPlayer).getLocation());
         }
-        currentPlayer = (currentPlayer + 1) % players.size();
+        else {
+            int[] dice = diceRoll();
+            if (dice[0] == dice[1]) {
+                doublesCount[currentPlayer] += 1;
+                if (doublesCount[currentPlayer] == 3) {
+                    player.goToJail();
+                    doublesCount[currentPlayer] = 0;
+                    currentPlayer = (currentPlayer + 1) % players.size();
+                    return;
+                }
+            }
+
+            player.move(dice[0] + dice[1]);
+
+            Square square = getSquare(player.getLocation());
+            System.out.println(player.getName() + " landed on: " + square.getName() + " (position " + player.getLocation() + ")");
+            if (square instanceof OwnableSquare ownable && ownable.getOwner() == null) {
+                pendingPurchase = ownable;
+                waitingForBuyResponse = true;
+                System.out.println(player.getName() + " can buy " + ownable.getName() + " for $" + ownable.getPrice() + ".");
+            }
+            else square.landOn(player);
+
+            if (player.isInJail()){
+                doublesCount[currentPlayer] = 0;
+                currentPlayer = (currentPlayer + 1) % players.size();
+                return;
+            }
+
+            if (dice[0] == dice[1]){
+                System.out.println(player.getName() + " rolled doubles -- rolls again!");
+            }
+            else {
+                currentPlayer = (currentPlayer + 1) % players.size();
+            }
+        }
+
     }
 }

@@ -44,9 +44,14 @@ public class Player implements Serializable {
         return player.properties;
     }
 
-    public void buy(Street street){
-        //money-=property.cost; need to get info from property
-        properties.add(street);
+    public void buy(OwnableSquare property) {
+        money -= property.getPrice();
+        property.setOwner(this);
+        properties.add(property);
+    }
+
+    public void setInJail(boolean inJail) {
+        this.inJail = inJail;
     }
 
     public void addMoney(int money){

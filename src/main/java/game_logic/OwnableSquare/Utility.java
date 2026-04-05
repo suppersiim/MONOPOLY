@@ -6,8 +6,8 @@ public class Utility extends OwnableSquare{
 
     private int numberOfUtilitiesOwned;
 
-    public Utility(int rent, String name) {
-        super(rent, name);
+    public Utility(int rent, int price, String name) {
+        super(rent, price, name);
     }
 
     @Override
