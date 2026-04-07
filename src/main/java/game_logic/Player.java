@@ -15,6 +15,7 @@ public class Player implements Serializable {
     private List<OwnableSquare> properties;
     private int location;
     private boolean inJail;
+    private List<Card> playerCards;
 
     public Player(String name) {
         this.name = name;
@@ -28,6 +29,10 @@ public class Player implements Serializable {
         return location;
     }
 
+    public void setLocation(int location) {
+        this.location = location;
+    }
+
     public boolean isInJail() {
         return inJail;
     }
@@ -38,6 +43,14 @@ public class Player implements Serializable {
 
     public int getMoney() {
         return money;
+    }
+
+    public List<OwnableSquare> getProperties() {
+        return properties;
+    }
+
+    public List<Card> getPlayerCards() {
+        return playerCards;
     }
 
     public List<OwnableSquare> getProperties(Player player) {
@@ -58,8 +71,8 @@ public class Player implements Serializable {
         this.money += money;
     }
 
-    public void payTax(int tax){
-        this.money -= tax;
+    public void payMoney(int money){
+        this.money -= money;
     }
 
     public void payRentToPlayer(int rent, Player owner){
@@ -118,6 +131,68 @@ public class Player implements Serializable {
     public boolean isBankrupt(){
         // TODO: check if player has any money (has houses? can mortgage something? has cash?)
         return false;
+    }
+
+    public void movePlayerToSquare(int squareIndex) {
+        location = squareIndex;
+    }
+
+    public void movePlayerToNearestRailroad() {
+        int[] railroadPositions = {5, 15, 25, 35};
+        int nearestRailroad = 0;
+        for (int pos : railroadPositions) {
+            if (pos > location) {
+                nearestRailroad = pos;
+                break;
+            }
+        }
+        // If the player is past all railroads, loop back to the first one
+        if (nearestRailroad == 0) nearestRailroad = 5;
+        setLocation(nearestRailroad);
+    }
+
+    public void movePlayerToNearestUtility() {
+        int[] utilityPositions = {12, 28};
+        int nearestUtility = 0;
+        for (int pos : utilityPositions) {
+            if (pos > location) {
+                nearestUtility = pos;
+                break;
+            }
+        }
+        // If the player is past both utilities, loop back to the first one
+        if (nearestUtility == 0) nearestUtility = 12;
+        setLocation(nearestUtility);
+    }
+
+    public void givePlayerGetOutOfJailCard() {
+        // TODO: add a Get Out of Jail Free card to the player's inventory
+    }
+
+    public int getTotalHouses() {
+        int totalHouses = 0;
+        for (OwnableSquare property : properties) {
+            if (property instanceof Street) {
+                totalHouses += ((Street) property).getNumberOfHouses();
+            }
+        }
+        return totalHouses;
+    }
+
+    public int getTotalHotels(){
+        int totalHotels = 0;
+        for (OwnableSquare property : properties) {
+            if (property instanceof Street) {
+                if (((Street) property).hasHotel()) {
+                    totalHotels++;
+                }
+            }
+        }
+        return totalHotels;
+    }
+
+    public void getNumberOfPlayers(){
+        // TODO: get number of players
     }
 
 }

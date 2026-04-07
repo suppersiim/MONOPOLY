@@ -18,6 +18,6 @@ public class Tax extends NonOwnableSquare {
     @Override
     public void landOn(Player player) {
         // player pays tax amount
-        player.payTax(getTax());
+        player.payMoney(getTax());
     }
 }

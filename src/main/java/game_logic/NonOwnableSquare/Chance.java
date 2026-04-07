@@ -2,13 +2,19 @@ package game_logic.NonOwnableSquare;
 
 import game_logic.Player;
 
-public class Chance extends NonOwnableSquare {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class Chance extends NonOwnableSquare{
 
     public Chance() {
         super("Chance");
     }
 
-    private final String[] chanceCards = {
+    /*
+    //LIST OF CHANCE CARDS:
+    final String[] chanceCards = {
             "Advance to Boardwalk",
             "Advance to Go (Collect $200)",
             "Advance to Illinois Avenue. If you pass Go, collect $200",
@@ -26,20 +32,82 @@ public class Chance extends NonOwnableSquare {
             "You have been elected Chairman of the Board. Pay each player $50",
             "Your building loan matures. Collect $150"
     };
+    */
 
-    public String getRandomCard() {
-        int randomIndex = (int) (Math.random() * chanceCards.length);
-        return chanceCards[randomIndex];
+    private final List<Card> allChanceCards = List.of(
+
+            new Card("Advance to Boardwalk",
+                    player -> player.movePlayerToSquare(39)),
+
+            new Card("Advance to Go (Collect $200)",
+                    player -> player.movePlayerToSquare(0)),
+
+            new Card("Advance to Illinois Avenue. If you pass Go, collect $200",
+                    player -> player.movePlayerToSquare(24)),
+
+            new Card("Advance to St. Charles Place. If you pass Go, collect $200",
+                    player -> player.movePlayerToSquare(11)),
+
+            new Card("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental",
+                    player -> player.movePlayerToNearestRailroad()), // TODO: pay double rent
+
+            new Card("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental",
+                    player -> player.movePlayerToNearestRailroad()), // TODO: pay double rent
+
+            new Card("Advance to nearest Utility. If unowned, you may buy it. If owned, throw dice and pay owner ten times amount thrown",
+                    player -> player.movePlayerToNearestUtility()), // TODO: pay 10x dice roll
+
+            new Card("Bank pays you dividend of $50",
+                    player -> player.addMoney(50)),
+
+            new Card("Get Out of Jail Free",
+                    player -> player.givePlayerGetOutOfJailCard()),
+
+            new Card("Go Back 3 Spaces",
+                    player -> player.setLocation((player.getLocation() - 3 + 40) % 40)),
+
+            new Card("Go to Jail. Go directly to Jail, do not pass Go, do not collect $200",
+                    player -> player.goToJail()),
+
+            new Card("Make general repairs on all your property. For each house pay $25. For each hotel pay $100",
+                    player -> {
+                        int houses = player.getTotalHouses();
+                        int hotels = player.getTotalHotels();
+                        player.payMoney(houses * 25 + hotels * 100);
+                    }),
+
+            new Card("Speeding fine $15",
+                    player -> player.payMoney(15)),
+
+            new Card("Take a trip to Reading Railroad. If you pass Go, collect $200",
+                    player -> player.movePlayerToSquare(5)),
+
+            new Card("You have been elected Chairman of the Board. Pay each player $50",
+                    player -> { /* TODO: pay all other players $50 */ }),
+
+            new Card("Your building loan matures. Collect $150",
+                    player -> player.addMoney(150))
+    );
+
+    // Simulate card deck, where you draw a card from the top untill there are no more cards left
+    private final List<Card> chanceDeck = new ArrayList<>(allChanceCards);
+
+    public Card drawCard() {
+        // Reshuffle deck if empty
+        if (chanceDeck.isEmpty()) {
+            chanceDeck.addAll(allChanceCards);
+            Collections.shuffle(chanceDeck);
+        }
+        // Draw the top card
+        return chanceDeck.removeFirst();
     }
 
     @Override
     public void landOn(Player player) {
-        String card = getRandomCard();
-        // Here you would implement the logic to apply the effect of the card to the player
-        // For example, if the card is "Advance to Go (Collect $200)", you would move the player to the Go square and give them $200
-        // This is just a placeholder and should be expanded based on the actual effects of each card
-        System.out.println(player.getName() + " drew a Chance card: " + card);
-        // TODO: every card you pull has an effect to the player - implement all these functions
+        // TODO: check if player moves over Go square and give them $200 if they do
+        Card card = drawCard();
+        System.out.println(player.getName() + " drew a Chance card: " + card.getDescription());
+        card.applyEffect(player);
     }
 }
 

@@ -8,6 +8,7 @@ public class Street extends OwnableSquare{
     private String color;
     private int sector;
     private int numberOfHouses;
+    private boolean hasHotel;
     private int streetNumber;
 
     public Street(int rent, int price, Color color, int sector, String name) {
@@ -43,6 +44,13 @@ public class Street extends OwnableSquare{
         return sector * 50;
     }
 
+    public int getNumberOfHouses(){
+        return numberOfHouses;
+    }
+
+    public boolean hasHotel() {
+        return hasHotel;
+    }
 
     @Override
     public void landOn(Player player) {
