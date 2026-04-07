@@ -4,7 +4,7 @@ import game_logic.Player;
 
 import java.util.List;
 
-public class Chance extends NonOwnableSquare implements CardEffect {
+public class Chance extends NonOwnableSquare{
 
     public Chance() {
         super("Chance");
@@ -63,7 +63,7 @@ public class Chance extends NonOwnableSquare implements CardEffect {
             (player) -> player.givePlayerGetOutOfJailCard(),
 
             // Go Back 3 Spaces
-            (player) -> player.setLocation(player.getLocation() - 3),
+            (player) -> player.setLocation((player.getLocation() - 3 + 40) % 40),
 
             // Go to Jail. Go directly to Jail, do not pass Go, do not collect $200
             (player) -> player.goToJail(),
@@ -82,7 +82,9 @@ public class Chance extends NonOwnableSquare implements CardEffect {
             (player) -> player.movePlayerToSquare(5),
 
             // You have been elected Chairman of the Board. Pay each player $50
-            //TODO: pay all other players 50$
+            (player) -> {
+                //TODO: pay all other players 50$
+            },
 
             // Your building loan matures. Collect $150
             (player) -> player.addMoney(150)
@@ -97,7 +99,6 @@ public class Chance extends NonOwnableSquare implements CardEffect {
         applyEffect(player);
     }
 
-    @Override
     public void applyEffect(Player player) {
         // TODO: check if player moves over Go square and give them $200 if they do
         int cardNumber = getRandomCard();
