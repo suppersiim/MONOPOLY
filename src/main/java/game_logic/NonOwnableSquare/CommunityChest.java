@@ -2,7 +2,7 @@ package game_logic.NonOwnableSquare;
 
 import game_logic.Player;
 
-public class CommunityChest extends NonOwnableSquare {
+public class CommunityChest extends NonOwnableSquare implements CardEffect{
 
     public CommunityChest() {
         super("Community Chest");
@@ -40,6 +40,11 @@ public class CommunityChest extends NonOwnableSquare {
         // This is just a placeholder and should be expanded based on the actual effects of each card
         System.out.println(player.getName() + " drew a Community Chest card: " + card);
         // TODO: every card you pull has an effect to the player - implement all these functions
+    }
+
+    @Override
+    public void applyEffect(Player player) {
+
     }
 }
 
