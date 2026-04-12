@@ -12,6 +12,7 @@ public enum PacketType {
     SERVER_JOINED_PLAYERS_COUNT,
     SERVER_GAME_STATE_UPDATE,
     SERVER_BUY_OFFER,
+    SERVER_EVENT_LOG,
 
     // general packets
     QUIT;

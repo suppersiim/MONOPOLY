@@ -2,7 +2,9 @@ package game_logic.NonOwnableSquare;
 
 import game_logic.Player;
 
-public class Card implements CardEffect {
+import java.io.Serializable;
+
+public class Card implements CardEffect, Serializable {
     private final String description;
     private final CardEffect effect;
 

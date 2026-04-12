@@ -1,6 +1,8 @@
 package game_logic.OwnableSquare;
 
-public class ColorGroup {
+import java.io.Serializable;
+
+public class ColorGroup implements Serializable {
 
     // TODO: check isColorSetComplete() here!
 

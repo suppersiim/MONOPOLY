@@ -2,6 +2,7 @@ package server;
 
 import common.GamePacket;
 import common.PacketType;
+import game_logic.Player;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -42,6 +43,14 @@ public class PacketHandler {
             return;
         }
         monopoly.onTurn();
+
+        // Generate event messages
+        Player current = monopoly.getCurrentPlayer(); // snapshot before advancing
+        String eventMsg = current.getName() + " rolled " +
+                (monopoly.getDice()[0] + monopoly.getDice()[1]) +
+                " and moved to " + monopoly.getSquare(current.getLocation()).getName();
+        gameServer.getGameManager().broadcastEvent(eventMsg);
+
         //If onTurn() paused for a buy decision, send an offer to the current player only
         if (monopoly.isWaitingForBuyResponse()) {
             String name = monopoly.getPendingPurchase().getName();
@@ -61,9 +70,19 @@ public class PacketHandler {
             System.out.println("Received unexpected buy response; ignoring.");
             return;
         }
+
+        String playerName = monopoly.getCurrentPlayer().getName();
+        String propertyName = monopoly.getPendingPurchase().getName();
+        int price = monopoly.getPendingPurchase().getPrice();
+
         String response = new String(data.readAllBytes()).trim();
         boolean accepted = response.equalsIgnoreCase("yes");
         monopoly.resolveBuy(accepted);
+
+        String buyMsg = accepted
+                ? playerName + " bought " + propertyName + " for $" + price
+                : playerName + " passed on " + propertyName;
+        gameServer.getGameManager().broadcastEvent(buyMsg);
         gameServer.getGameManager().broadcastGameState();
     }
 
