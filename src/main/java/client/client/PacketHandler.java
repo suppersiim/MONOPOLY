@@ -14,6 +14,8 @@ public class PacketHandler {
     private Consumer<GameState> onGameStateUpdate = null;
     private Consumer<Integer> onJoinedPlayersCount = null;
 
+    private Consumer<String> onEventLog = null;
+
     private BiConsumer<String, Integer> onBuyOffer = null;
 
     public PacketHandler(Game game) {
@@ -71,6 +73,15 @@ public class PacketHandler {
         this.onBuyOffer = onBuyOffer;
     }
 
+    public void setOnEventLog(Consumer<String> onEventLog) {
+        this.onEventLog = onEventLog;
+    }
+
+    private void handleEventLog(GamePacket packet) {
+        String msg = new String(packet.getData());
+        if (onEventLog != null) onEventLog.accept(msg);
+    }
+
 
     public void handlePacket(GamePacket packet) {
         switch (packet.getType()) {
@@ -82,6 +93,9 @@ public class PacketHandler {
                 break;
             case SERVER_BUY_OFFER:
                 handleBuyOffer(packet);
+                break;
+            case SERVER_EVENT_LOG:
+                handleEventLog(packet);
                 break;
         }
     }
