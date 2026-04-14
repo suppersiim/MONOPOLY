@@ -10,21 +10,14 @@ import java.util.List;
 
 public class Monopoly extends GameState {
     private int[] doublesCount;
-    private boolean waitingForBuyResponse = false;
-    private OwnableSquare pendingPurchase = null;
+
 
     public Monopoly(List<Player> players) {
         super(players);
         doublesCount = new int[players.size()];
     }
 
-    public boolean isWaitingForBuyResponse() {
-        return waitingForBuyResponse;
-    }
 
-    public OwnableSquare getPendingPurchase() {
-        return pendingPurchase;
-    }
 
     public int[] diceRoll(){
         dice[0] = (int)(Math.random()*6+1);
@@ -34,12 +27,12 @@ public class Monopoly extends GameState {
 
     public void resolveBuy(boolean accepted) {
         Player player = players.get(currentPlayer);
-        if (accepted && pendingPurchase != null && player.getMoney() >= pendingPurchase.getPrice()) {
-            player.buy(pendingPurchase);
+        if (accepted && getPendingPurchase() != null && player.getMoney() >= getPendingPurchase().getPrice()) {
+            player.buy(getPendingPurchase());
         }
         // TODO: auction if declined
-        pendingPurchase = null;
-        waitingForBuyResponse = false;
+        setPendingPurchase(null);
+        setWaitingForBuyResponse(false);
         currentPlayer = (currentPlayer + 1) % players.size();
     }
 
@@ -76,13 +69,7 @@ public class Monopoly extends GameState {
             player.move(dice[0] + dice[1]);
 
             Square square = getSquare(player.getLocation());
-            System.out.println(player.getName() + " landed on: " + square.getName() + " (position " + player.getLocation() + ")");
-            if (square instanceof OwnableSquare ownable && ownable.getOwner() == null) {
-                pendingPurchase = ownable;
-                waitingForBuyResponse = true;
-                System.out.println(player.getName() + " can buy " + ownable.getName() + " for $" + ownable.getPrice() + ".");
-            }
-            else square.landOn(player);
+            square.landOn(player);
 
             if (player.isInJail()){
                 doublesCount[currentPlayer] = 0;

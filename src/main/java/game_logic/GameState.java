@@ -1,6 +1,7 @@
 package game_logic;
 
 import game_logic.NonOwnableSquare.*;
+import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
 import game_logic.OwnableSquare.Utility;
@@ -14,6 +15,8 @@ public class GameState implements Serializable {
     public int currentPlayer;
     private List<Square> squares;
     public int[] dice = new int[2];
+    private boolean waitingForBuyResponse = false;
+    private OwnableSquare pendingPurchase = null;
 
     public GameState(List<Player> players) {
         this.players = players;
@@ -75,6 +78,21 @@ public class GameState implements Serializable {
 
     public Player getCurrentPlayer() {
         return players.get(currentPlayer);
+    }
+
+    public boolean isWaitingForBuyResponse() {
+        return waitingForBuyResponse;
+    }
+    public OwnableSquare getPendingPurchase() {
+        return pendingPurchase;
+    }
+
+    public void setWaitingForBuyResponse(boolean waitingForBuyResponse) {
+        this.waitingForBuyResponse = waitingForBuyResponse;
+    }
+
+    public void setPendingPurchase(OwnableSquare pendingPurchase) {
+        this.pendingPurchase = pendingPurchase;
     }
 
     public int getCurrentPlayerIndex() {
