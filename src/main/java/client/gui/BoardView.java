@@ -28,6 +28,7 @@ public class BoardView extends BorderPane {
     private Label moneyLabel;
     private Label currentSquareLabel;
     private Button rollButton;
+    private ListView<String> eventLog;
 
     public BoardView(Game game) {
         this.game = game;
@@ -38,13 +39,19 @@ public class BoardView extends BorderPane {
         // Right panel
         VBox controls = new VBox(20);
         controls.setAlignment(Pos.CENTER);
-        controls.setPrefWidth(200);
+        controls.setPrefWidth(300);
 
         statusLabel = new Label("Your turn");
         diceLabel = new Label("Dice: * - *");
         rollButton = new Button("Roll dice");
         moneyLabel = new Label("Money: ");
         currentSquareLabel = new Label("Current square: Go");
+
+        eventLog = new ListView<>();
+        eventLog.setPrefSize(400, 200);
+        eventLog.setPlaceholder(new Label("No events yet"));
+        Label logTitle = new Label("Activity Log");
+        logTitle.setStyle("-fx-font-weight: bold;");
 
         //send to server
         rollButton.setOnAction(e -> {
@@ -64,7 +71,18 @@ public class BoardView extends BorderPane {
         game.getClient().getPacketHandler().setOnBuyOffer((propertyName, price) ->
                 Platform.runLater(() -> showBuyDialog(propertyName, price)));
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton);
+        // Register callback
+        game.getClient().getPacketHandler().setOnEventLog(msg ->
+                Platform.runLater(() -> {
+                    eventLog.getItems().add(0, msg);  // newest at top
+                    if (eventLog.getItems().size() > 50) {
+                        eventLog.getItems().remove(50); // keep last 50
+                    }
+                })
+        );
+
+
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());

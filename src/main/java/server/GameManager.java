@@ -52,6 +52,15 @@ public class GameManager {
         return joinedPlayers.size();
     }
 
+    protected void broadcastEvent(String message) {
+        try {
+            GamePacket packet = new GamePacket(PacketType.SERVER_EVENT_LOG, message);
+            server.sendToAllClients(packet);
+        } catch (Exception e) {
+            System.out.println("Error sending event: " + e.getMessage());
+        }
+    }
+
     public void startGame() {
         if (joinedPlayers.isEmpty()) { // TODO: min 2 players
             System.out.println("Not enough players to start the game.");
