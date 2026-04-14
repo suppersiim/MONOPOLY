@@ -1,5 +1,6 @@
 package game_logic;
 
+import game_logic.NonOwnableSquare.Card;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
