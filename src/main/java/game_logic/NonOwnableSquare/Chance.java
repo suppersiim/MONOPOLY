@@ -40,13 +40,13 @@ public class Chance extends NonOwnableSquare{
                     player -> player.movePlayerToSquare(39)),
 
             new Card("Advance to Go (Collect $200)",
-                    player -> player.movePlayerToSquare(0)),
+                    player -> player.move(player.calculateDistance(0));
 
             new Card("Advance to Illinois Avenue. If you pass Go, collect $200",
-                    player -> player.movePlayerToSquare(24)), // TODO: check if player passed GO
+                    player -> player.move(player.calculateDistance(24)),
 
             new Card("Advance to St. Charles Place. If you pass Go, collect $200",
-                    player -> player.movePlayerToSquare(11)), // TODO: check if player passed GO
+                    player -> player.move(player.calculateDistance(11)), // TODO: check if player passed GO
 
             new Card("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental",
                     player -> player.movePlayerToNearestRailroad()), // TODO: pay double rent
@@ -67,7 +67,7 @@ public class Chance extends NonOwnableSquare{
                     player -> player.setLocation((player.getLocation() - 3 + 40) % 40)),
 
             new Card("Go to Jail. Go directly to Jail, do not pass Go, do not collect $200",
-                    player -> player.goToJail()), // TODO: do not pay player 200$ if passed GO
+                    player -> player.goToJail()),
 
             new Card("Make general repairs on all your property. For each house pay $25. For each hotel pay $100",
                     player -> {
@@ -80,7 +80,7 @@ public class Chance extends NonOwnableSquare{
                     player -> player.payMoney(15)),
 
             new Card("Take a trip to Reading Railroad. If you pass Go, collect $200",
-                    player -> player.movePlayerToSquare(5)), // TODO: check if player passed GO
+                    player -> player.move(player.calculateDistance(5)), // TODO: check if player passed GO
 
             new Card("You have been elected Chairman of the Board. Pay each player $50",
                     player -> { /* TODO: pay all other players $50 */ }),
