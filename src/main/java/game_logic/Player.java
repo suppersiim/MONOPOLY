@@ -138,6 +138,11 @@ public class Player implements Serializable {
         location = squareIndex;
     }
 
+    public int calculateDistance(int squareIndex) {
+        if (squareIndex > location) return squareIndex-location;
+        else return 40-location+squareIndex;
+    }
+
     public void movePlayerToNearestRailroad() {
         int[] railroadPositions = {5, 15, 25, 35};
         int nearestRailroad = 0;
