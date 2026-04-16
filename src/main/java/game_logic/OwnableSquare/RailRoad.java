@@ -6,7 +6,7 @@ public class RailRoad extends OwnableSquare{
 
     //private int numberOfTrainStationsOwned;
 
-    public RailRoad(int rent, int price, String name) {
+    public RailRoad(int[] rent, int price, String name) {
         super(rent, price, name);
     }
 
