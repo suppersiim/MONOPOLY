@@ -29,5 +29,7 @@ public class RailRoad extends OwnableSquare{
         // if the railroad is owned by another player, the current player pays rent to the owner
         int rent = calculateRent();
         player.payRentToPlayer(rent, getOwner());
+        super.landOn(player);
+
     }
 }

@@ -5,6 +5,7 @@ import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
 import game_logic.OwnableSquare.Utility;
+import server.GameManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -80,10 +81,14 @@ public class Player implements Serializable {
     }
 
     public void payMoney(int money){
+        String event = this.name + " paid $" + money;
+        GameManager.getInstance().broadcastEvent(event);
         this.money -= money;
     }
 
     public void payRentToPlayer(int rent, Player owner){
+        String event = this.name + " paid $" + rent + " in rent to " + owner.getName();
+        GameManager.getInstance().broadcastEvent(event);
         this.money -= rent;
         owner.addMoney(rent);
     }
@@ -97,11 +102,15 @@ public class Player implements Serializable {
     }
 
     public void goToJail(){
+        String event = this.name + " was sent to Jail!";
+        GameManager.getInstance().broadcastEvent(event);
         location = 10;
         inJail = true;
     }
 
     public void payFineToGetOutOfJail(){
+        String event = this.name + " paid $50 to get out of Jail.";
+        GameManager.getInstance().broadcastEvent(event);
         money -= 50;
         inJail = false;
     }
@@ -182,6 +191,8 @@ public class Player implements Serializable {
     }
 
     public void givePlayerGetOutOfJailCard() {
+        String event = this.name + " received a Get Out of Jail Free card!";
+        GameManager.getInstance().broadcastEvent(event);
         // TODO: add a Get Out of Jail Free card to the player's inventory
     }
 
@@ -207,8 +218,7 @@ public class Player implements Serializable {
         return totalHotels;
     }
 
-    public void getNumberOfPlayers(){
-        // TODO: get number of players
+    public int getNumberOfPlayers(){
+        return GameManager.getInstance().getGame().getPlayers().size();
     }
-
 }

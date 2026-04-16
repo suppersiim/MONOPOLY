@@ -9,6 +9,7 @@ public class GoToJail extends NonOwnableSquare {
     }
     @Override
     public void landOn(Player player) {
+        super.landOn(player);
         // Move the player to the Jail square
         player.goToJail();
     }

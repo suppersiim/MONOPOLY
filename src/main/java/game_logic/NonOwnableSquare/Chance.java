@@ -104,6 +104,8 @@ public class Chance extends NonOwnableSquare{
 
     @Override
     public void landOn(Player player) {
+        super.landOn(player);
+        // TODO: check if player moves over Go square and give them $200 if they do
         Card card = drawCard();
         System.out.println(player.getName() + " drew a Chance card: " + card.getDescription());
         card.applyEffect(player);

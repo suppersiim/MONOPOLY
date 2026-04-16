@@ -10,6 +10,7 @@ public class GoSquare extends NonOwnableSquare {
 
     @Override
     public void landOn(Player player) {
+        super.landOn(player);
         // the player recieves 200$ when they land on or pass Go
         player.addMoney(200);
     }

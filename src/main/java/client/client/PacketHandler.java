@@ -84,6 +84,7 @@ public class PacketHandler {
 
 
     public void handlePacket(GamePacket packet) {
+        System.out.println("Handling packet of type " + packet.getType());
         switch (packet.getType()) {
             case PacketType.SERVER_GAME_STATE_UPDATE:
                 handleGameStateUpdate(packet);

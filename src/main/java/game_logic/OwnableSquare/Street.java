@@ -54,23 +54,7 @@ public class Street extends OwnableSquare{
 
     @Override
     public void landOn(Player player) {
-        // if this property is owned by another player, the current player pays rent to the owner
-        // if this property is not owned by any player, the current player can choose to buy it or not
-        // if the current player decides not to buy it, the property goes to auction and other players can bid for it
-
-        if (getOwner() == null){
-            // offer to buy the street
-            // TODO: popup window, where the player gets to choose to buy the street or not
-
-            // if the player doesn't buy - the street goes to auction and other players can bid for it
-            //TODO: auction
-
-        } else {
-            // if the street is owned by another player, the current player pays rent to the owner
-            int rent = calculateRent();
-            player.payRentToPlayer(rent, getOwner());
-        }
-
+        super.landOn(player);
     }
 
     public String getColor() {

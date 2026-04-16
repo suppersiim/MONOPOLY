@@ -1,6 +1,7 @@
 package game_logic.NonOwnableSquare;
 
 import game_logic.Player;
+import server.GameManager;
 
 import java.io.Serializable;
 
@@ -17,6 +18,7 @@ public class Card implements CardEffect, Serializable {
 
     @Override
     public void applyEffect(Player player) {
+        GameManager.getInstance().broadcastEvent(player.getName() + " drew a card: " + description);
         effect.applyEffect(player);
     }
 }
