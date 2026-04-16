@@ -70,4 +70,10 @@ public class GameManager {
         game = new Monopoly(joinedPlayers.stream().map(Player::new).toList());
         broadcastGameState();
     }
+
+    public void resetGame() {
+        game = null;
+        joinedPlayers.clear();
+        System.out.println("Game reset. Waiting for players to join...");
+    }
 }

@@ -44,6 +44,13 @@ public class ClientHandler implements Runnable {
             System.out.println("Client disconnected: " + socket.getRemoteSocketAddress());
         } catch (IOException e) {
             System.out.println("Error handling client: " + e.getMessage());
+        } finally {
+            try {
+                close();
+            } catch (IOException e) {
+                System.out.println("Error closing client connection: " + e.getMessage());
+            }
+            server.removeClient(this);
         }
     }
 
