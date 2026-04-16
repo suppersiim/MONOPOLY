@@ -16,7 +16,10 @@ import client.Game;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class BoardView extends BorderPane {
     private final Game game;
@@ -33,8 +36,23 @@ public class BoardView extends BorderPane {
     public BoardView(Game game) {
         this.game = game;
         grid = new GridPane();
+
+        grid.setMaxSize(600, 600);
+
+        StackPane boardPane = new StackPane();
+        try {
+            Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/monopoly-board.png")));
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(600);
+            imageView.setFitHeight(600);
+            boardPane.getChildren().add(imageView);
+        } catch (Exception e) {
+            System.err.println("Could not load board image: " + e.getMessage());
+        }
+        boardPane.getChildren().add(grid);
+
         setupBoard();
-        this.setCenter(grid);
+        this.setCenter(boardPane);
 
         // Right panel
         VBox controls = new VBox(20);
@@ -113,12 +131,22 @@ public class BoardView extends BorderPane {
     }
 
     private void setupBoard() {
+        for (int i = 0; i < 11; i++) {
+            ColumnConstraints colConst = new ColumnConstraints();
+            double size = (i == 0 || i == 10) ? (200.0 / 13.0) : (100.0 / 13.0);
+            colConst.setPercentWidth(size);
+            grid.getColumnConstraints().add(colConst);
+
+            RowConstraints rowConst = new RowConstraints();
+            rowConst.setPercentHeight(size);
+            grid.getRowConstraints().add(rowConst);
+        }
+
         for (int i = 0; i < 40; i++) {
             StackPane space = createSpace(i);
             spaces.add(space);
 
-
-            int col = 0, row = 0;
+            int col, row;
             if (i <= 10) { row = 10; col = 10 - i; }        // bottom row
             else if (i <= 20) { col = 0; row = 10 - (i - 10); } // left row
             else if (i <= 30) { row = 0; col = i - 20; }        // top row
@@ -126,31 +154,10 @@ public class BoardView extends BorderPane {
 
             grid.add(space, col, row);
         }
-
-        // LOGO
-        Label logo = new Label("MONOPOLY");
-        logo.setStyle("-fx-font-size: 40px; -fx-font-weight: bold;");
-        grid.add(logo, 1, 1, 9, 9);
-        GridPane.setHalignment(logo, javafx.geometry.HPos.CENTER);
     }
 
     private StackPane createSpace(int index) {
         StackPane pane = new StackPane();
-        Rectangle rect = new Rectangle(60, 60);
-        rect.setFill(Color.WHITE);
-        rect.setStroke(Color.BLACK);
-
-        Square square = game.getGameState().getSquare(index);
-        Label label = new Label(square.getName());
-        label.setMaxSize(50, 50);
-        label.setWrapText(true);
-        pane.getChildren().addAll(rect, label);
-        if (square instanceof Street street) {
-            Rectangle colorBar = new Rectangle(59, 10);
-            colorBar.setFill(Color.valueOf(street.getColor()));
-            pane.getChildren().add(colorBar);
-            StackPane.setAlignment(colorBar, Pos.TOP_CENTER);
-        }
         return pane;
     }
 
@@ -159,7 +166,7 @@ public class BoardView extends BorderPane {
         System.out.println("Updating board...");
         // remove old
         for (Circle token : playerTokens) {
-            ((StackPane)token.getParent()).getChildren().remove(token);
+            ((Pane)token.getParent()).getChildren().remove(token);
         }
         playerTokens.clear();
 
@@ -169,7 +176,6 @@ public class BoardView extends BorderPane {
             playerTokens.add(token);
             spaces.get(p.getLocation()).getChildren().add(token);
         }
-
         if (state.getCurrentPlayer().getName().equals(game.getPlayerName())) {
             statusLabel.setText("Your turn");
             rollButton.setDisable(false);

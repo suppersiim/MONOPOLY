@@ -70,10 +70,6 @@ public class GameClient {
         send(packet);
     }
 
-    public void payRent(int amount) {
-        //TODO
-    }
-
     public boolean getRunning() {
         return running;
     }

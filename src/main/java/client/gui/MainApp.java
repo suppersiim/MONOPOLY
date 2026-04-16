@@ -1,5 +1,6 @@
 package client.gui;
 
+import client.Game;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -14,6 +15,13 @@ public class MainApp extends Application {
         primaryStage.setTitle("Monopoly - Start");
         primaryStage.setScene(scene);
         primaryStage.setOnCloseRequest(event -> {
+            if (Game.getInstance() != null) {
+                try {
+                    Game.getInstance().disconnect();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
             System.exit(0);
         });
         primaryStage.show();
