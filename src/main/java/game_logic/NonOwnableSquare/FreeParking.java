@@ -10,6 +10,7 @@ public class FreeParking extends NonOwnableSquare {
 
     @Override
     public void landOn(Player player) {
+        super.landOn(player);
         // All the collected money is given to the player that landed on that square
     }
 }

@@ -102,6 +102,7 @@ public class CommunityChest extends NonOwnableSquare{
 
     @Override
     public void landOn(Player player) {
+        super.landOn(player);
         Card card = drawCard();
         System.out.println(player.getName() + " drew a Community Chest card: " + card.getDescription());
         card.applyEffect(player);

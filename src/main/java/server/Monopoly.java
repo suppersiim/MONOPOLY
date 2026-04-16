@@ -1,11 +1,8 @@
 package server;
 
 import game_logic.GameState;
-import game_logic.OwnableSquare.OwnableSquare;
-import game_logic.OwnableSquare.Utility;
 import game_logic.Player;
 import game_logic.Square;
-
 import java.util.List;
 
 public class Monopoly extends GameState {
@@ -22,6 +19,13 @@ public class Monopoly extends GameState {
     public int[] diceRoll(){
         dice[0] = (int)(Math.random()*6+1);
         dice[1] = (int)(Math.random()*6+1);
+
+        String event = players.get(currentPlayer).getName() + " rolled a " + dice[0] + " and a " + dice[1];
+        if (dice[0] == dice[1]) {
+            event += " (doubles)";
+        }
+        GameManager.getInstance().broadcastEvent(event);
+
         return dice;
     }
 

@@ -10,12 +10,15 @@ import java.util.List;
 public class GameManager {
 
     private final GameServer server;
+    private Monopoly game = null;
+
     private List<String> joinedPlayers = new ArrayList<>();
 
-    private Monopoly game = null;
+    private static GameManager instance;
 
     protected GameManager(GameServer server) {
         this.server = server;
+        instance = this;
     }
 
     /**
@@ -52,7 +55,7 @@ public class GameManager {
         return joinedPlayers.size();
     }
 
-    protected void broadcastEvent(String message) {
+    public void broadcastEvent(String message) {
         try {
             GamePacket packet = new GamePacket(PacketType.SERVER_EVENT_LOG, message);
             server.sendToAllClients(packet);
@@ -75,5 +78,13 @@ public class GameManager {
         game = null;
         joinedPlayers.clear();
         System.out.println("Game reset. Waiting for players to join...");
+    }
+
+    public GameServer getServer() {
+        return server;
+    }
+
+    public static GameManager getInstance() {
+        return instance;
     }
 }

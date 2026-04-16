@@ -44,13 +44,6 @@ public class PacketHandler {
         }
         monopoly.onTurn();
 
-        // Generate event messages
-        Player current = monopoly.getCurrentPlayer(); // snapshot before advancing
-        String eventMsg = current.getName() + " rolled " +
-                (monopoly.getDice()[0] + monopoly.getDice()[1]) +
-                " and moved to " + monopoly.getSquare(current.getLocation()).getName();
-        gameServer.getGameManager().broadcastEvent(eventMsg);
-
         //If onTurn() paused for a buy decision, send an offer to the current player only
         if (monopoly.isWaitingForBuyResponse()) {
             String name = monopoly.getPendingPurchase().getName();
