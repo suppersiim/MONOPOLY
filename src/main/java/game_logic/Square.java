@@ -1,11 +1,14 @@
 package game_logic;
 
+import server.Monopoly;
+
 import server.GameManager;
 import java.io.Serializable;
 
 public class Square implements Serializable {
 
     private String name;
+    //public GameState gameState;
 
     public Square(String name) {
         this.name = name;

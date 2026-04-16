@@ -10,11 +10,13 @@ public class Street extends OwnableSquare{
     private int numberOfHouses;
     private boolean hasHotel;
     private int streetNumber;
+    private int houseCost;
 
-    public Street(int rent, int price, Color color, int sector, String name) {
+    public Street(int[] rent, int price, Color color, String name, int houseCost) {
         super(rent, price, name);
         this.color = color.toString();
         this.sector = sector;
+        this.houseCost = houseCost;
     }
 
     public int numberOfStreetsInColorSet(){
@@ -32,11 +34,11 @@ public class Street extends OwnableSquare{
     @Override
     public int calculateRent() {
         if (numberOfHouses > 0){
-            return numberOfHouses * getRent(); // This is different in real monopoly!!!
+            return getRent()[numberOfHouses]; // This is different in real monopoly!!!
         } else if (isColorSetComplete()){
-            return 2 * getRent();
+            return getRent()[0] * 2;
         }
-        return getRent();
+        return getRent()[0];
     }
 
     public int getHousePrice(){

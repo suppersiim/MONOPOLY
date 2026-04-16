@@ -1,19 +1,21 @@
 package game_logic.OwnableSquare;
 
+import game_logic.GameState;
 import game_logic.Player;
 import game_logic.Square;
+import server.Monopoly;
 import server.GameManager;
 
 public abstract class OwnableSquare extends Square {
 
     private Player owner;
-    private int rent;
+    private int[] rent;
     private int price;
 
-    public OwnableSquare(int rent,int price, String name) {
+    public OwnableSquare(int[] rent, int price, String name) {
         super(name);
-        this.rent = rent;
         this.price = price;
+        this.rent = rent;
     }
 
     // abstact method that every type of property can implement differently
@@ -27,7 +29,7 @@ public abstract class OwnableSquare extends Square {
         this.owner = owner;
     }
 
-    public int getRent() {
+    public int[] getRent() {
         return rent;
     }
 

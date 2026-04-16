@@ -33,20 +33,20 @@ public class Chance extends NonOwnableSquare{
             "Your building loan matures. Collect $150"
     };
     */
-
+    // TODO: replace movePlayerToSquare with move method and add int moves as param
     private final List<Card> allChanceCards = List.of(
 
             new Card("Advance to Boardwalk",
                     player -> player.movePlayerToSquare(39)),
 
             new Card("Advance to Go (Collect $200)",
-                    player -> player.movePlayerToSquare(0)),
+                    player -> player.move(player.calculateDistance(0))),
 
             new Card("Advance to Illinois Avenue. If you pass Go, collect $200",
-                    player -> player.movePlayerToSquare(24)),
+                    player -> player.move(player.calculateDistance(24))),
 
             new Card("Advance to St. Charles Place. If you pass Go, collect $200",
-                    player -> player.movePlayerToSquare(11)),
+                    player -> player.move(player.calculateDistance(11))), // TODO: check if player passed GO
 
             new Card("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental",
                     player -> player.movePlayerToNearestRailroad()), // TODO: pay double rent
@@ -80,10 +80,10 @@ public class Chance extends NonOwnableSquare{
                     player -> player.payMoney(15)),
 
             new Card("Take a trip to Reading Railroad. If you pass Go, collect $200",
-                    player -> player.movePlayerToSquare(5)),
+                    player -> player.move(player.calculateDistance(5))),
 
             new Card("You have been elected Chairman of the Board. Pay each player $50",
-                    player -> { /* TODO: pay all other players $50 */ }),
+                    player -> {/*TODO: get all players}*/}),
 
             new Card("Your building loan matures. Collect $150",
                     player -> player.addMoney(150))

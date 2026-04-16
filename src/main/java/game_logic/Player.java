@@ -1,5 +1,6 @@
 package game_logic;
 
+import game_logic.NonOwnableSquare.Card;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
@@ -45,6 +46,13 @@ public class Player implements Serializable {
     public int getMoney() {
         return money;
     }
+
+    /*
+    public List<Player> getAllPlayers(){
+        return getplayers()
+    }
+    //TODO: get all players
+     */
 
     public List<OwnableSquare> getProperties() {
         return properties;
@@ -163,6 +171,9 @@ public class Player implements Serializable {
         // If the player is past all railroads, loop back to the first one
         if (nearestRailroad == 0) nearestRailroad = 5;
         setLocation(nearestRailroad);
+
+        //TODO: check if square is owned
+
     }
 
     public void movePlayerToNearestUtility() {
