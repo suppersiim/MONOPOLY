@@ -1,13 +1,17 @@
 package game_logic;
 
+import server.Monopoly;
+
 import java.io.Serializable;
 
 public abstract class Square implements Serializable {
 
     private String name;
+    public GameState gameState;
 
-    public Square(String name) {
+    public Square(String name, GameState gameState) {
         this.name = name;
+        this.gameState = gameState;
     }
 
     // Every turn players roll the dice and based on the square they land on something happens.

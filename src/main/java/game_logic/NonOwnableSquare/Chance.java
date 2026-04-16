@@ -40,13 +40,13 @@ public class Chance extends NonOwnableSquare{
                     player -> player.movePlayerToSquare(39)),
 
             new Card("Advance to Go (Collect $200)",
-                    player -> player.move(player.calculateDistance(0));
+                    player -> player.move(player.calculateDistance(0))),
 
             new Card("Advance to Illinois Avenue. If you pass Go, collect $200",
-                    player -> player.move(player.calculateDistance(24)),
+                    player -> player.move(player.calculateDistance(24))),
 
             new Card("Advance to St. Charles Place. If you pass Go, collect $200",
-                    player -> player.move(player.calculateDistance(11)), // TODO: check if player passed GO
+                    player -> player.move(player.calculateDistance(11))), // TODO: check if player passed GO
 
             new Card("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental",
                     player -> player.movePlayerToNearestRailroad()), // TODO: pay double rent
@@ -80,10 +80,10 @@ public class Chance extends NonOwnableSquare{
                     player -> player.payMoney(15)),
 
             new Card("Take a trip to Reading Railroad. If you pass Go, collect $200",
-                    player -> player.move(player.calculateDistance(5)), // TODO: check if player passed GO
+                    player -> player.move(player.calculateDistance(5))),
 
             new Card("You have been elected Chairman of the Board. Pay each player $50",
-                    player -> { /* TODO: pay all other players $50 */ }),
+                    player -> {/*TODO: get all players}*/}),
 
             new Card("Your building loan matures. Collect $150",
                     player -> player.addMoney(150))
@@ -104,7 +104,6 @@ public class Chance extends NonOwnableSquare{
 
     @Override
     public void landOn(Player player) {
-        // TODO: check if player moves over Go square and give them $200 if they do
         Card card = drawCard();
         System.out.println(player.getName() + " drew a Chance card: " + card.getDescription());
         card.applyEffect(player);
