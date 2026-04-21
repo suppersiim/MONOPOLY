@@ -1,6 +1,7 @@
 package server;
 
 import game_logic.GameState;
+import game_logic.OwnableSquare.Street;
 import game_logic.Player;
 import game_logic.Square;
 import java.util.List;
@@ -38,6 +39,18 @@ public class Monopoly extends GameState {
         setPendingPurchase(null);
         setWaitingForBuyResponse(false);
         currentPlayer = (currentPlayer + 1) % players.size();
+    }
+
+    public void resolveBuyHouse(boolean accepted) {
+        Player player = players.get(currentPlayer);
+        Street street = (Street) getPendingPurchase();
+        if (accepted && street != null && player.getMoney() >= street.getHousePrice()) {
+            player.buyHouse(street);
+        }
+
+        setPendingHousePurchase(null);
+        setWaitingForBuyHouseResponse(false);
+        //currentPlayer = (currentPlayer + 1) % players.size();
     }
 
     public void onTurn(){

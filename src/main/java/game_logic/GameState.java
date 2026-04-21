@@ -13,10 +13,13 @@ import javafx.scene.paint.Color;
 public class GameState implements Serializable {
     public List<Player> players;
     public int currentPlayer;
-    private List<Square> squares;
+    public List<Square> squares;
     public int[] dice = new int[2];
-    private boolean waitingForBuyResponse = false;
-    private OwnableSquare pendingPurchase = null;
+    boolean waitingForBuyResponse = false;
+    boolean waitingForBuyHouseResponse = false;
+    public OwnableSquare pendingPurchase = null;
+    public Street pendingHousePurchase = null;
+    private static final long serialVersionUID = 1L;
 
     public GameState(List<Player> players) {
         this.players = players;
@@ -36,16 +39,33 @@ public class GameState implements Serializable {
     public boolean isWaitingForBuyResponse() {
         return waitingForBuyResponse;
     }
+
+    public boolean isWaitingForBuyHouseResponse() {
+        return waitingForBuyHouseResponse;
+    }
+
     public OwnableSquare getPendingPurchase() {
         return pendingPurchase;
+    }
+
+    public Street getPendingHousePurchase() {
+        return pendingHousePurchase;
     }
 
     public void setWaitingForBuyResponse(boolean waitingForBuyResponse) {
         this.waitingForBuyResponse = waitingForBuyResponse;
     }
 
+    public void setWaitingForBuyHouseResponse(boolean waitingForBuyHouseResponse) {
+        this.waitingForBuyHouseResponse = waitingForBuyHouseResponse;
+    }
+
     public void setPendingPurchase(OwnableSquare pendingPurchase) {
         this.pendingPurchase = pendingPurchase;
+    }
+
+    public void setPendingHousePurchase(Street pendingHousePurchase) {
+        this.pendingHousePurchase = pendingHousePurchase;
     }
 
     public int getCurrentPlayerIndex() {
@@ -89,7 +109,20 @@ public class GameState implements Serializable {
             this.currentPlayer = m.currentPlayer;
             this.squares = m.squares;
             this.dice = m.dice;
+            this.waitingForBuyResponse = m.waitingForBuyResponse;
+            this.waitingForBuyHouseResponse = m.waitingForBuyHouseResponse;
+            this.pendingPurchase = m.pendingPurchase;
+            this.pendingHousePurchase = m.pendingHousePurchase;
             // TODO: add all other fields
         }
+    }
+
+    public Street findStreetByName(String streetName) {
+        for (Square square : squares) {
+            if (square instanceof Street street && street.getName().equals(streetName)) {
+                return street;
+            }
+        }
+        return null;
     }
 }

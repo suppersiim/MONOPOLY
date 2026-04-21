@@ -1,11 +1,13 @@
 package client.gui;
 
 import game_logic.GameState;
+import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.Street;
 import game_logic.Player;
 import game_logic.Square;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -31,6 +33,7 @@ public class BoardView extends BorderPane {
     private Label moneyLabel;
     private Label currentSquareLabel;
     private Button rollButton;
+    private Button buyHouseButton;
     private ListView<String> eventLog;
 
     public BoardView(Game game) {
@@ -62,6 +65,7 @@ public class BoardView extends BorderPane {
         statusLabel = new Label("Your turn");
         diceLabel = new Label("Dice: * - *");
         rollButton = new Button("Roll dice");
+        buyHouseButton = new Button("Buy house");
         moneyLabel = new Label("Money: ");
         currentSquareLabel = new Label("Current square: Go");
 
@@ -73,6 +77,7 @@ public class BoardView extends BorderPane {
 
         //send to server
         rollButton.setOnAction(e -> {
+            rollButton.setDisable(true);
             System.out.println("Rolling...");
             try {
                 game.getClient().sendRoll();
@@ -81,12 +86,18 @@ public class BoardView extends BorderPane {
             }
         });
 
+        buyHouseButton.setOnAction(e -> showBuyHouseDialog());
+
         // Game state updates
         game.getClient().getPacketHandler().setOnGameStateUpdate(
                 state -> Platform.runLater(() -> update(state)));
 
         // Buy offer dialog — only shown to the player who landed on the property
         game.getClient().getPacketHandler().setOnBuyOffer((propertyName, price) ->
+                Platform.runLater(() -> showBuyDialog(propertyName, price)));
+
+        // Buy a house for your property
+        game.getClient().getPacketHandler().setOnBuyHouseOffer((propertyName, price) ->
                 Platform.runLater(() -> showBuyDialog(propertyName, price)));
 
         // Register callback
@@ -100,7 +111,7 @@ public class BoardView extends BorderPane {
         );
 
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, eventLog);
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
@@ -128,6 +139,76 @@ public class BoardView extends BorderPane {
         } catch (IOException e) {
             System.out.println("Error sending buy response: " + e.getMessage());
         }
+    }
+
+    public void auction(String propertyName, int price){
+        // TODO: get all other players and make an auction between them
+        // TODO: pop-up window where there is 10s to place a bid and if someone overbids then there is up to 5s time for others to then overbid that guy
+    }
+
+    private void showBuyHouseDialog() {
+        Player currentPlayer = game.getGameState().getCurrentPlayer();
+        List<Street> availableStreets = getAvailableStreets(currentPlayer);
+
+        if (availableStreets.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("No available properties");
+            alert.setContentText("You have no streets to build a house on.");
+            alert.showAndWait();
+            return;
+        }
+
+        Dialog<Street> dialog = buildHouseDialog(availableStreets);
+        dialog.showAndWait().ifPresent(chosen -> {
+            System.out.println("chosen street: " + chosen);
+            try {
+                game.getClient().sendBuyHouseResponse(true, chosen.getName());
+            } catch (IOException ex) {
+                System.out.println("Error sending buy house response: " + ex.getMessage());
+            }
+        });
+    }
+
+    private Dialog<Street> buildHouseDialog(List<Street> streets) {
+        Dialog<Street> dialog = new Dialog<>();
+        dialog.setTitle("Buy House");
+        dialog.setHeaderText("Select a street to build a house on");
+
+        ButtonType buyButton = new ButtonType("Buy House", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(buyButton, cancelButton);
+
+        ListView<Street> listView = new ListView<>();
+        listView.getItems().addAll(streets);
+        listView.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(Street street, boolean empty) {
+                super.updateItem(street, empty);
+                if (empty || street == null) setText(null);
+                else setText(street.getName() + " — Houses: " + street.getNumberOfHouses() + " — Price: $" + street.getHousePrice());
+            }
+        });
+        listView.setPrefHeight(200);
+
+        Node buyHouseButton = dialog.getDialogPane().lookupButton(buyButton);
+        buyHouseButton.setDisable(true);
+        listView.getSelectionModel().selectedItemProperty().addListener(
+                (obs, old, selected) -> buyHouseButton.setDisable(selected == null)
+        );
+
+        dialog.getDialogPane().setContent(listView);
+        dialog.setResultConverter(button -> button == buyButton ? listView.getSelectionModel().getSelectedItem() : null);
+        return dialog;
+    }
+
+    private List<Street> getAvailableStreets(Player player) {
+        List<Street> streets = new ArrayList<>();
+        for (OwnableSquare property : player.getProperties()) {
+            if (property instanceof Street street) {
+                streets.add(street);
+            }
+        }
+        return streets;
     }
 
     private void setupBoard() {
@@ -179,9 +260,11 @@ public class BoardView extends BorderPane {
         if (state.getCurrentPlayer().getName().equals(game.getPlayerName())) {
             statusLabel.setText("Your turn");
             rollButton.setDisable(false);
+            buyHouseButton.setDisable(false);
         } else {
             statusLabel.setText(state.getCurrentPlayer().getName() + "'s turn");
             rollButton.setDisable(true);
+            buyHouseButton.setDisable(true);
         }
 
         diceLabel.setText("Dice: " + state.getDice()[0] + " - " + state.getDice()[1]);

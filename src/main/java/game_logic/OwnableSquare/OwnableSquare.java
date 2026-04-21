@@ -11,6 +11,7 @@ public abstract class OwnableSquare extends Square {
     private Player owner;
     private int[] rent;
     private int price;
+    private static final long serialVersionUID = 1L;
 
     public OwnableSquare(int[] rent, int price, String name) {
         super(name);

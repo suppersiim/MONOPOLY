@@ -11,11 +11,11 @@ public class Street extends OwnableSquare{
     private boolean hasHotel;
     private int streetNumber;
     private int houseCost;
+    private static final long serialVersionUID = 1L;
 
     public Street(int[] rent, int price, Color color, String name, int houseCost) {
         super(rent, price, name);
         this.color = color.toString();
-        this.sector = sector;
         this.houseCost = houseCost;
     }
 
@@ -43,11 +43,16 @@ public class Street extends OwnableSquare{
 
     public int getHousePrice(){
         // 1. sector: 50$, 2.sector: 100$, 3.sector: 150$, 4.sector: 200$
-        return sector * 50;
+        return houseCost;
     }
 
     public int getNumberOfHouses(){
         return numberOfHouses;
+    }
+
+    public void addHouse(){
+        numberOfHouses++;
+        System.out.println("addHouse called, now: " + numberOfHouses);
     }
 
     public boolean hasHotel() {
@@ -61,5 +66,10 @@ public class Street extends OwnableSquare{
 
     public String getColor() {
         return color;
+    }
+
+    @Override
+    public String toString() {
+        return this.getName();
     }
 }

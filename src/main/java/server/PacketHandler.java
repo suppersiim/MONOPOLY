@@ -2,10 +2,13 @@ package server;
 
 import common.GamePacket;
 import common.PacketType;
+import game_logic.OwnableSquare.OwnableSquare;
+import game_logic.OwnableSquare.Street;
 import game_logic.Player;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Properties;
 
 public class PacketHandler {
     private final ClientHandler client;
@@ -79,6 +82,35 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
+    private void handleBuyHouseResponsePacket(DataInputStream data) throws IOException {
+        System.out.println("handleBuyHouseResponsePacket called");
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null || !monopoly.isWaitingForBuyHouseResponse()) {
+            System.out.println("Received unexpected buy house response; ignoring.");
+            return;
+        }
+
+        String payload = new String(data.readAllBytes()).trim();
+        boolean accepted = payload.startsWith("yes");
+
+        if (!accepted) return;
+
+        String streetName = payload.substring(4); // "yes:StreetName"
+        Street street = monopoly.findStreetByName(streetName);
+        if (street == null) {
+            System.out.println("Street not found: " + streetName);
+            return;
+        }
+
+        monopoly.setPendingPurchase(street);
+        monopoly.resolveBuyHouse(true);
+
+        String playerName = monopoly.getCurrentPlayer().getName();
+        String buyMsg = playerName + " bought a house on " + streetName + " for $" + street.getHousePrice();
+        gameServer.getGameManager().broadcastEvent(buyMsg);
+        gameServer.getGameManager().broadcastGameState();
+    }
+
     private void handleQuitPacket(DataInputStream data) throws IOException {
         System.out.println("Received quit packet. Closing connection.");
         client.close();
@@ -103,6 +135,9 @@ public class PacketHandler {
                     break;
                 case CLIENT_BUY_RESPONSE:
                     handleBuyResponsePacket(data);
+                    break;
+                case CLIENT_BUY_HOUSE_RESPONSE:
+                    handleBuyHouseResponsePacket(data);
                     break;
                 case QUIT:
                     handleQuitPacket(data);

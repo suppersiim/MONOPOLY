@@ -18,6 +18,7 @@ public class Player implements Serializable {
     private int location;
     private boolean inJail;
     private List<Card> playerCards;
+    private static final long serialVersionUID = 1L;
 
     public Player(String name) {
         this.name = name;
@@ -70,6 +71,11 @@ public class Player implements Serializable {
         money -= property.getPrice();
         property.setOwner(this);
         properties.add(property);
+    }
+
+    public void buyHouse(Street street){
+        money -= street.getHousePrice();
+        street.addHouse();
     }
 
     public void setInJail(boolean inJail) {
