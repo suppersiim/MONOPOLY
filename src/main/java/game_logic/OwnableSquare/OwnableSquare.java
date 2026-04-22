@@ -12,6 +12,7 @@ public abstract class OwnableSquare extends Square {
     private int[] rent;
     private int price;
     private static final long serialVersionUID = 1L;
+    private boolean isMortgaged;
 
     public OwnableSquare(int[] rent, int price, String name) {
         super(name);
@@ -38,6 +39,30 @@ public abstract class OwnableSquare extends Square {
         return price;
     }
 
+    public void mortgage(){
+        isMortgaged = true;
+    }
+
+    public void unmortgage(){
+        isMortgaged = false;
+    }
+
+    public boolean isMortgaged() {
+        return isMortgaged;
+    }
+
+    public void setMortgaged(boolean mortgaged) {
+        isMortgaged = mortgaged;
+    }
+
+    public int getMortgageValue() {
+        return price / 2;
+    }
+
+    public int getUnmortgageCost() {
+        return (int) (price / 2 * 1.1);
+    }
+
     @Override
     public void landOn(Player player) {
         super.landOn(player);
@@ -49,9 +74,11 @@ public abstract class OwnableSquare extends Square {
             GameManager.getInstance().getGame().setPendingPurchase(this);
             GameManager.getInstance().getGame().setWaitingForBuyResponse(true);
         } else if (getOwner() != player) {
-            // if the property is owned by another player, the current player pays rent to the owner
-            int rent = calculateRent();
-            player.payRentToPlayer(rent, getOwner());
+            if (!isMortgaged) {
+                // if the property is owned by another player, the current player pays rent to the owner
+                int rent = calculateRent();
+                player.payRentToPlayer(rent, getOwner());
+            }
         }
     }
 }

@@ -224,6 +224,16 @@ public class Player implements Serializable {
         return totalHotels;
     }
 
+    public void mortgage(OwnableSquare property){
+        money += property.getMortgageValue();
+        property.setMortgaged(true);
+    }
+
+    public void unmortgage(OwnableSquare property){
+        money -= property.getUnmortgageCost(); // 10% interest to unmortgage!
+        property.setMortgaged(false);
+    }
+
     public int getNumberOfPlayers(){
         return GameManager.getInstance().getGame().getPlayers().size();
     }

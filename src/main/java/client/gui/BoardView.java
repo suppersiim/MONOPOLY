@@ -34,6 +34,7 @@ public class BoardView extends BorderPane {
     private Label currentSquareLabel;
     private Button rollButton;
     private Button buyHouseButton;
+    private Button mortgageButton;
     private ListView<String> eventLog;
 
     public BoardView(Game game) {
@@ -66,6 +67,7 @@ public class BoardView extends BorderPane {
         diceLabel = new Label("Dice: * - *");
         rollButton = new Button("Roll dice");
         buyHouseButton = new Button("Buy house");
+        mortgageButton = new Button("Mortgage");
         moneyLabel = new Label("Money: ");
         currentSquareLabel = new Label("Current square: Go");
 
@@ -87,6 +89,7 @@ public class BoardView extends BorderPane {
         });
 
         buyHouseButton.setOnAction(e -> showBuyHouseDialog());
+        mortgageButton.setOnAction(e -> showMortgageDialog());
 
         // Game state updates
         game.getClient().getPacketHandler().setOnGameStateUpdate(
@@ -111,7 +114,7 @@ public class BoardView extends BorderPane {
         );
 
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton, eventLog);
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton,mortgageButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
@@ -169,6 +172,28 @@ public class BoardView extends BorderPane {
         });
     }
 
+    private void showMortgageDialog() {
+        Player currentPlayer = game.getGameState().getCurrentPlayer();
+        List<OwnableSquare> properties = currentPlayer.getProperties();
+
+        if (properties.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("No properties");
+            alert.setContentText("You have no properties to mortgage.");
+            alert.showAndWait();
+            return;
+        }
+
+        Dialog<OwnableSquare> dialog = buildMortgageDialog(properties);
+        dialog.showAndWait().ifPresent(chosen -> {
+            try {
+                game.getClient().sendMortgageRequest(chosen.getName());
+            } catch (IOException ex) {
+                System.out.println("Error sending mortgage request: " + ex.getMessage());
+            }
+        });
+    }
+
     private Dialog<Street> buildHouseDialog(List<Street> streets) {
         Dialog<Street> dialog = new Dialog<>();
         dialog.setTitle("Buy House");
@@ -198,6 +223,31 @@ public class BoardView extends BorderPane {
 
         dialog.getDialogPane().setContent(listView);
         dialog.setResultConverter(button -> button == buyButton ? listView.getSelectionModel().getSelectedItem() : null);
+        return dialog;
+    }
+
+    private Dialog<OwnableSquare> buildMortgageDialog(List<OwnableSquare> properties) {
+        Dialog<OwnableSquare> dialog = new Dialog<>();
+        dialog.setTitle("Mortgage");
+        dialog.setHeaderText("Select a property to mortgage/unmortgage");
+        dialog.getDialogPane().setPrefWidth(500);
+
+        ButtonType confirmButton = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButton, cancelButton);
+
+        ListView<OwnableSquare> listView = new ListView<>();
+        listView.getItems().addAll(properties);
+        listView.setPrefHeight(250);
+
+        Node confirmBtn = dialog.getDialogPane().lookupButton(confirmButton);
+        confirmBtn.setDisable(true);
+        listView.getSelectionModel().selectedItemProperty().addListener(
+                (obs, old, selected) -> confirmBtn.setDisable(selected == null)
+        );
+
+        dialog.getDialogPane().setContent(listView);
+        dialog.setResultConverter(btn -> btn == confirmButton ? listView.getSelectionModel().getSelectedItem() : null);
         return dialog;
     }
 

@@ -8,6 +8,7 @@ public enum PacketType {
     CLIENT_ROLL,
     CLIENT_BUY_RESPONSE,
     CLIENT_BUY_HOUSE_RESPONSE,
+    CLIENT_MORTGAGE,
 
     // server packets
     SERVER_JOINED_PLAYERS_COUNT,

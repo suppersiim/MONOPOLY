@@ -55,6 +55,10 @@ public class Street extends OwnableSquare{
         System.out.println("addHouse called, now: " + numberOfHouses);
     }
 
+    public void removeHouse() {
+        if (numberOfHouses > 0) numberOfHouses--;
+    }
+
     public boolean hasHotel() {
         return hasHotel;
     }

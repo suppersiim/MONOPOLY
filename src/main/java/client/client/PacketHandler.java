@@ -93,6 +93,10 @@ public class PacketHandler {
         onBuyHouseOffer.accept(name, price);
     }
 
+    public void handleMortgagePacket(GamePacket packet){
+
+    }
+
     public void setOnEventLog(Consumer<String> onEventLog) {
         this.onEventLog = onEventLog;
     }

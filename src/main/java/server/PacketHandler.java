@@ -111,6 +111,10 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
+    public void handleMortgagePacket(DataInputStream data) throws IOException{
+        return;
+    }
+
     private void handleQuitPacket(DataInputStream data) throws IOException {
         System.out.println("Received quit packet. Closing connection.");
         client.close();
@@ -138,6 +142,9 @@ public class PacketHandler {
                     break;
                 case CLIENT_BUY_HOUSE_RESPONSE:
                     handleBuyHouseResponsePacket(data);
+                    break;
+                case CLIENT_MORTGAGE:
+                    handleMortgagePacket(data);
                     break;
                 case QUIT:
                     handleQuitPacket(data);

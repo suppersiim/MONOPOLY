@@ -77,6 +77,11 @@ public class GameClient {
         send(packet);
     }
 
+    public void sendMortgageRequest(String propertyName) throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_MORTGAGE, propertyName);
+        send(packet);
+    }
+
     public boolean getRunning() {
         return running;
     }
