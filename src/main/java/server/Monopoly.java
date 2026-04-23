@@ -16,13 +16,16 @@ public class Monopoly extends GameState {
     }
 
 
+    public boolean isDouble() {
+        return dice[0] == dice[1];
+    }
 
     public int[] diceRoll(){
         dice[0] = (int)(Math.random()*6+1);
         dice[1] = (int)(Math.random()*6+1);
 
         String event = players.get(currentPlayer).getName() + " rolled a " + dice[0] + " and a " + dice[1];
-        if (dice[0] == dice[1]) {
+        if (isDouble()) {
             event += " (doubles)";
         }
         GameManager.getInstance().broadcastEvent(event);
@@ -38,7 +41,6 @@ public class Monopoly extends GameState {
         // TODO: auction if declined
         setPendingPurchase(null);
         setWaitingForBuyResponse(false);
-        currentPlayer = (currentPlayer + 1) % players.size();
     }
 
     public void resolveBuyHouse(boolean accepted) {
@@ -49,14 +51,13 @@ public class Monopoly extends GameState {
         }
 
         setPendingHousePurchase(null);
-        //currentPlayer = (currentPlayer + 1) % players.size();
     }
 
     public void onTurn(){
         Player player = players.get(currentPlayer);
         int[] dice = diceRoll();
         if (player.isInJail()) {
-            if (dice[0]==dice[1]){
+            if (isDouble()){
                 player.setInJail(false);
                 doublesCount[currentPlayer] = 0;
                 currentPlayer = (currentPlayer + 1) % players.size();
@@ -71,7 +72,7 @@ public class Monopoly extends GameState {
             }
         }
         else {
-            if (dice[0] == dice[1]) {
+            if (isDouble()) {
                 doublesCount[currentPlayer] += 1;
                 if (doublesCount[currentPlayer] == 3) {
                     player.goToJail();
@@ -89,13 +90,12 @@ public class Monopoly extends GameState {
                 return;
             }
 
-            if (dice[0] == dice[1]){
+            if (isDouble()){
                 System.out.println(player.getName() + " rolled doubles -- rolls again!");
             }
             else {
                 currentPlayer = (currentPlayer + 1) % players.size();
             }
         }
-
     }
 }

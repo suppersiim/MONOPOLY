@@ -47,7 +47,8 @@ public class StartPage {
                 game.getClient().getPacketHandler().setOnJoinedPlayersCount(count -> {
                     Platform.runLater(() -> {
                         playerCountLabel.setText("Players: " + count);
-                        startButton.setDisable(false);
+                        if (count == 1)
+                            startButton.setDisable(false);
                     });
                 });
 
