@@ -49,14 +49,13 @@ public class Monopoly extends GameState {
         }
 
         setPendingHousePurchase(null);
-        setWaitingForBuyHouseResponse(false);
         //currentPlayer = (currentPlayer + 1) % players.size();
     }
 
     public void onTurn(){
         Player player = players.get(currentPlayer);
+        int[] dice = diceRoll();
         if (player.isInJail()) {
-            int[] dice = diceRoll();
             if (dice[0]==dice[1]){
                 player.setInJail(false);
                 doublesCount[currentPlayer] = 0;
@@ -72,7 +71,6 @@ public class Monopoly extends GameState {
             }
         }
         else {
-            int[] dice = diceRoll();
             if (dice[0] == dice[1]) {
                 doublesCount[currentPlayer] += 1;
                 if (doublesCount[currentPlayer] == 3) {

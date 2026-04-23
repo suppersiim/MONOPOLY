@@ -85,7 +85,7 @@ public class PacketHandler {
     private void handleBuyHouseResponsePacket(DataInputStream data) throws IOException {
         System.out.println("handleBuyHouseResponsePacket called");
         Monopoly monopoly = gameServer.getGameManager().getGame();
-        if (monopoly == null || !monopoly.isWaitingForBuyHouseResponse()) {
+        if (monopoly == null) {
             System.out.println("Received unexpected buy house response; ignoring.");
             return;
         }

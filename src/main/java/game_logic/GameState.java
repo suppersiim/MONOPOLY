@@ -16,7 +16,6 @@ public class GameState implements Serializable {
     public List<Square> squares;
     public int[] dice = new int[2];
     boolean waitingForBuyResponse = false;
-    boolean waitingForBuyHouseResponse = false;
     public OwnableSquare pendingPurchase = null;
     public Street pendingHousePurchase = null;
     private static final long serialVersionUID = 1L;
@@ -40,10 +39,6 @@ public class GameState implements Serializable {
         return waitingForBuyResponse;
     }
 
-    public boolean isWaitingForBuyHouseResponse() {
-        return waitingForBuyHouseResponse;
-    }
-
     public OwnableSquare getPendingPurchase() {
         return pendingPurchase;
     }
@@ -54,10 +49,6 @@ public class GameState implements Serializable {
 
     public void setWaitingForBuyResponse(boolean waitingForBuyResponse) {
         this.waitingForBuyResponse = waitingForBuyResponse;
-    }
-
-    public void setWaitingForBuyHouseResponse(boolean waitingForBuyHouseResponse) {
-        this.waitingForBuyHouseResponse = waitingForBuyHouseResponse;
     }
 
     public void setPendingPurchase(OwnableSquare pendingPurchase) {
@@ -110,7 +101,6 @@ public class GameState implements Serializable {
             this.squares = m.squares;
             this.dice = m.dice;
             this.waitingForBuyResponse = m.waitingForBuyResponse;
-            this.waitingForBuyHouseResponse = m.waitingForBuyHouseResponse;
             this.pendingPurchase = m.pendingPurchase;
             this.pendingHousePurchase = m.pendingHousePurchase;
             // TODO: add all other fields
