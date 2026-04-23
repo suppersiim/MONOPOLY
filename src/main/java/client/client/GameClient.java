@@ -39,7 +39,7 @@ public class GameClient {
         new Thread(receiver).start();
     }
 
-    public void send(GamePacket packet) throws IOException {
+    public synchronized void send(GamePacket packet) throws IOException {
         packet.writeTo(out);
         out.flush();
     }
@@ -67,6 +67,18 @@ public class GameClient {
     public void sendBuyResponse(boolean accepted) throws IOException {
         String response = accepted ? "yes" : "no";
         GamePacket packet = new GamePacket(PacketType.CLIENT_BUY_RESPONSE, response);
+        send(packet);
+    }
+
+    public void sendBuyHouseResponse(boolean accepted, String streetName) throws IOException {
+        String response = accepted ? "yes:" + streetName : "no";
+        System.out.println("Sending buy house response: " + response);
+        GamePacket packet = new GamePacket(PacketType.CLIENT_BUY_HOUSE_RESPONSE, response);
+        send(packet);
+    }
+
+    public void sendMortgageRequest(String propertyName) throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_MORTGAGE, propertyName);
         send(packet);
     }
 

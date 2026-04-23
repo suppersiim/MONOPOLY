@@ -17,6 +17,7 @@ public class PacketHandler {
     private Consumer<String> onEventLog = null;
 
     private BiConsumer<String, Integer> onBuyOffer = null;
+    private BiConsumer<String, Integer> onBuyHouseOffer = null;
 
     public PacketHandler(Game game) {
         this.game = game;
@@ -73,6 +74,29 @@ public class PacketHandler {
         this.onBuyOffer = onBuyOffer;
     }
 
+    public void setOnBuyHouseOffer(BiConsumer<String, Integer> onBuyHouseOffer) {
+        this.onBuyHouseOffer = onBuyHouseOffer;
+    }
+
+    private void handleBuyHouseOffer(GamePacket packet) {
+        String payload = new String(packet.getData());
+        int sep = payload.lastIndexOf(':');
+        if (sep < 0 || onBuyHouseOffer == null) return;
+        String name = payload.substring(0, sep);
+        int price;
+        try {
+            price = Integer.parseInt(payload.substring(sep + 1));
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid buy house offer payload: " + payload);
+            return;
+        }
+        onBuyHouseOffer.accept(name, price);
+    }
+
+    public void handleMortgagePacket(GamePacket packet){
+
+    }
+
     public void setOnEventLog(Consumer<String> onEventLog) {
         this.onEventLog = onEventLog;
     }
@@ -94,6 +118,9 @@ public class PacketHandler {
                 break;
             case SERVER_BUY_OFFER:
                 handleBuyOffer(packet);
+                break;
+            case SERVER_BUY_HOUSE_OFFER:
+                handleBuyHouseOffer(packet);
                 break;
             case SERVER_EVENT_LOG:
                 handleEventLog(packet);

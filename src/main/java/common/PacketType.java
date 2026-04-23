@@ -7,11 +7,14 @@ public enum PacketType {
     CLIENT_START_GAME,
     CLIENT_ROLL,
     CLIENT_BUY_RESPONSE,
+    CLIENT_BUY_HOUSE_RESPONSE,
+    CLIENT_MORTGAGE,
 
     // server packets
     SERVER_JOINED_PLAYERS_COUNT,
     SERVER_GAME_STATE_UPDATE,
     SERVER_BUY_OFFER,
+    SERVER_BUY_HOUSE_OFFER,
     SERVER_EVENT_LOG,
 
     // general packets
