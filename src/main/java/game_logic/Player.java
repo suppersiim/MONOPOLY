@@ -1,11 +1,13 @@
 package game_logic;
 
 import game_logic.NonOwnableSquare.Card;
+import game_logic.NonOwnableSquare.Chance;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
 import game_logic.OwnableSquare.Utility;
 import server.GameManager;
+import server.Monopoly;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,7 +20,6 @@ public class Player implements Serializable {
     private int location;
     private boolean inJail;
     private List<Card> playerCards;
-    private static final long serialVersionUID = 1L;
 
     public Player(String name) {
         this.name = name;
@@ -100,11 +101,16 @@ public class Player implements Serializable {
     }
 
     public void move(int moves){
-        if (location+moves>=40){
-            location = (location+moves)%40;
-            money+=200;
+        if (location + moves >= 40){
+            money += 200;
         }
-        else location+=moves;
+        location = (location + moves) % 40;
+
+        Monopoly monopoly = GameManager.getInstance().getGame();
+        Square square = monopoly.getSquare(getLocation());
+        if (square instanceof Chance)
+            System.out.println();
+        square.landOn(this);
     }
 
     public void goToJail(){
@@ -157,7 +163,8 @@ public class Player implements Serializable {
     }
 
     public void movePlayerToSquare(int squareIndex) {
-        location = squareIndex;
+        int moves = calculateDistance(squareIndex);
+        move(moves);
     }
 
     public int calculateDistance(int squareIndex) {

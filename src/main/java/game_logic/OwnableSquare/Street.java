@@ -11,7 +11,6 @@ public class Street extends OwnableSquare{
     private boolean hasHotel;
     private int streetNumber;
     private int houseCost;
-    private static final long serialVersionUID = 1L;
 
     public Street(int[] rent, int price, Color color, String name, int houseCost) {
         super(rent, price, name);

@@ -83,9 +83,6 @@ public class Monopoly extends GameState {
 
             player.move(dice[0] + dice[1]);
 
-            Square square = getSquare(player.getLocation());
-            square.landOn(player);
-
             if (player.isInJail()){
                 doublesCount[currentPlayer] = 0;
                 currentPlayer = (currentPlayer + 1) % players.size();

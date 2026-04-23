@@ -11,7 +11,6 @@ public abstract class OwnableSquare extends Square {
     private Player owner;
     private int[] rent;
     private int price;
-    private static final long serialVersionUID = 1L;
     private boolean isMortgaged;
 
     public OwnableSquare(int[] rent, int price, String name) {
@@ -60,7 +59,7 @@ public abstract class OwnableSquare extends Square {
     }
 
     public int getUnmortgageCost() {
-        return (int) (price / 2 * 1.1);
+        return (int) (price / 2.0 * 1.1);
     }
 
     @Override

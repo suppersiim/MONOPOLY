@@ -18,7 +18,6 @@ public class GameState implements Serializable {
     boolean waitingForBuyResponse = false;
     public OwnableSquare pendingPurchase = null;
     public Street pendingHousePurchase = null;
-    private static final long serialVersionUID = 1L;
 
     public GameState(List<Player> players) {
         this.players = players;

@@ -8,7 +8,6 @@ import java.io.Serializable;
 public class Square implements Serializable {
 
     private String name;
-    private static final long serialVersionUID = 1L;
     //public GameState gameState;
 
     public Square(String name) {
