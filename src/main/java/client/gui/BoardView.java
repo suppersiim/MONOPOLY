@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -36,19 +38,26 @@ public class BoardView extends BorderPane {
     private Button buyHouseButton;
     private Button mortgageButton;
     private ListView<String> eventLog;
+    private VBox playerStatsBox;
 
     public BoardView(Game game) {
         this.game = game;
         grid = new GridPane();
 
-        grid.setMaxSize(600, 600);
-
         StackPane boardPane = new StackPane();
+        boardPane.setMaxSize(700, 700); // cap max board image size
+        boardPane.setMinSize(0, 0);     // allow it to scale down
+
+        NumberBinding minSide = Bindings.min(boardPane.widthProperty(), boardPane.heightProperty());
+        grid.maxWidthProperty().bind(minSide);
+        grid.maxHeightProperty().bind(minSide);
+
         try {
             Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/monopoly-board.png")));
             ImageView imageView = new ImageView(image);
-            imageView.setFitWidth(600);
-            imageView.setFitHeight(600);
+            imageView.setPreserveRatio(true);
+            imageView.fitWidthProperty().bind(minSide);
+            imageView.fitHeightProperty().bind(minSide);
             boardPane.getChildren().add(imageView);
         } catch (Exception e) {
             System.err.println("Could not load board image: " + e.getMessage());
@@ -57,6 +66,18 @@ public class BoardView extends BorderPane {
 
         setupBoard();
         this.setCenter(boardPane);
+
+        // Left overview panel
+        VBox leftPanel = new VBox(10);
+        leftPanel.setAlignment(Pos.TOP_CENTER);
+        leftPanel.setPrefWidth(200);
+
+        playerStatsBox = new VBox(8);
+        playerStatsBox.setAlignment(Pos.TOP_LEFT);
+        playerStatsBox.setStyle("-fx-padding: 10;");
+
+        leftPanel.getChildren().add(playerStatsBox);
+        this.setLeft(leftPanel);
 
         // Right panel
         VBox controls = new VBox(20);
@@ -295,6 +316,18 @@ public class BoardView extends BorderPane {
     // update pieces on the board
     public void update(GameState state) {
         System.out.println("Updating board...");
+
+        playerStatsBox.getChildren().clear();
+        for (int i = 0; i < state.getPlayers().size(); i++) {
+            Player p = state.getPlayers().get(i);
+            HBox playerInfo = new HBox(10);
+            playerInfo.setAlignment(Pos.CENTER_LEFT);
+            Circle colorIndicator = new Circle(7, getPlayerColor(i));
+            Label infoLabel = new Label(p.getName() + ": $" + p.getMoney());
+            playerInfo.getChildren().addAll(colorIndicator, infoLabel);
+            playerStatsBox.getChildren().add(playerInfo);
+        }
+
         // remove old
         for (Circle token : playerTokens) {
             ((Pane)token.getParent()).getChildren().remove(token);
