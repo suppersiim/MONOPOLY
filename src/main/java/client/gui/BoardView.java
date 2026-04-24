@@ -177,7 +177,7 @@ public class BoardView extends BorderPane {
         if (availableStreets.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("No available properties");
-            alert.setContentText("You have no streets to build a house on.");
+            alert.setContentText("You have no complete street color sets to buy houses for.");
             alert.showAndWait();
             return;
         }
@@ -275,7 +275,7 @@ public class BoardView extends BorderPane {
     private List<Street> getAvailableStreets(Player player) {
         List<Street> streets = new ArrayList<>();
         for (OwnableSquare property : player.getProperties()) {
-            if (property instanceof Street street) {
+            if (property instanceof Street street && street.isColorSetComplete() && street.getNumberOfHouses() < 5) {
                 streets.add(street);
             }
         }

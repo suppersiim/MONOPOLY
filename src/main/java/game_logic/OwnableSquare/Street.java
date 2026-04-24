@@ -24,10 +24,16 @@ public class Street extends OwnableSquare{
         else return 3;
     }
 
-    public boolean isColorSetComplete(){
-        // TODO: Determine if one player has all the streets from one color aka the color set is complete!
-        // NB! DARK BLUE and BROWN have 2 streets in the colorset
-        return true;
+    public boolean isColorSetComplete() {
+        Player owner = getOwner();
+        if (owner == null) return false;
+
+        int totalInSet = numberOfStreetsInColorSet();
+        long ownedInSet = owner.streetsOwned().stream()
+                .filter(s -> s.getColor().equals(this.color)).count();
+
+        if (ownedInSet == totalInSet) return true;
+        else return false;
     }
 
     @Override

@@ -44,7 +44,7 @@ public class Monopoly extends GameState {
     public void resolveBuyHouse(boolean accepted) {
         Player player = players.get(currentPlayer);
         Street street = (Street) getPendingPurchase();
-        if (accepted && street != null && player.getMoney() >= street.getHousePrice()) {
+        if (accepted && street != null && player.getMoney() >= street.getHousePrice() && street.getNumberOfHouses() < 5) {
             player.buyHouse(street);
         }
 
