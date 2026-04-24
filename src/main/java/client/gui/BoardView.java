@@ -34,6 +34,7 @@ public class BoardView extends BorderPane {
     private Label diceLabel;
     private Label moneyLabel;
     private Label currentSquareLabel;
+    private Label middlePotLabel;
     private Button rollButton;
     private Button buyHouseButton;
     private Button mortgageButton;
@@ -91,6 +92,7 @@ public class BoardView extends BorderPane {
         mortgageButton = new Button("Mortgage");
         moneyLabel = new Label("Money: ");
         currentSquareLabel = new Label("Current square: Go");
+        middlePotLabel = new Label("Free Parking pot: $0");
 
         eventLog = new ListView<>();
         eventLog.setPrefSize(400, 200);
@@ -135,7 +137,7 @@ public class BoardView extends BorderPane {
         );
 
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton,mortgageButton, eventLog);
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, middlePotLabel, rollButton, buyHouseButton,mortgageButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
@@ -353,6 +355,7 @@ public class BoardView extends BorderPane {
         diceLabel.setText("Dice: " + state.getDice()[0] + " - " + state.getDice()[1]);
         Player myPlayer = state.getPlayerByName(game.getPlayerName());
         moneyLabel.setText("Money: " + myPlayer.getMoney());
+        middlePotLabel.setText("Free Parking pot: $" + state.getMiddlePot());
         currentSquareLabel.setText("Current square: " + game.getGameState().getSquare(myPlayer.getLocation()).getName());
     }
 

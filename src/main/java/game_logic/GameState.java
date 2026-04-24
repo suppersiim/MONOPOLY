@@ -18,6 +18,7 @@ public class GameState implements Serializable {
     boolean waitingForBuyResponse = false;
     public OwnableSquare pendingPurchase = null;
     public Street pendingHousePurchase = null;
+    public int middlePot = 0; // money that is collected when players pay tax and collected when someone lands on free parking
 
     public GameState(List<Player> players) {
         this.players = players;
@@ -69,6 +70,18 @@ public class GameState implements Serializable {
         return null;
     }
 
+    public void addMiddlePot(int tax){
+        middlePot += tax;
+    }
+
+    public int getMiddlePot() {
+        return middlePot;
+    }
+
+    public void setMiddlePot(int middlePot) {
+        this.middlePot = middlePot;
+    }
+
     public int[] getDice() {
         return dice;
     }
@@ -102,6 +115,7 @@ public class GameState implements Serializable {
             this.waitingForBuyResponse = m.waitingForBuyResponse;
             this.pendingPurchase = m.pendingPurchase;
             this.pendingHousePurchase = m.pendingHousePurchase;
+            this.middlePot = m.middlePot;
             // TODO: add all other fields
         }
     }
