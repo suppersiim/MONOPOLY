@@ -87,6 +87,11 @@ public class GameClient {
         send(packet);
     }
 
+    public void sendEndTurn() throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_END_TURN, new byte[0]);
+        send(packet);
+    }
+
     public boolean getRunning() {
         return running;
     }

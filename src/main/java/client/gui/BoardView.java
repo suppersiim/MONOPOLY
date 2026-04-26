@@ -39,6 +39,8 @@ public class BoardView extends BorderPane {
     private Button mortgageButton;
     private ListView<String> eventLog;
     private VBox playerStatsBox;
+    private Button endTurnButton;
+    private Button viewPropertiesButton;
 
     public BoardView(Game game) {
         this.game = game;
@@ -91,6 +93,8 @@ public class BoardView extends BorderPane {
         mortgageButton = new Button("Mortgage / Unmortgage");
         moneyLabel = new Label("Money: ");
         currentSquareLabel = new Label("Current square: Go");
+        endTurnButton = new Button("End Turn");
+        viewPropertiesButton = new Button("View Properties");
 
         eventLog = new ListView<>();
         eventLog.setPrefSize(400, 200);
@@ -109,8 +113,20 @@ public class BoardView extends BorderPane {
             }
         });
 
+        endTurnButton.setOnAction(e -> {
+            endTurnButton.setDisable(true);
+            rollButton.setDisable(true);
+            try {
+                game.getClient().sendEndTurn();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
         buyHouseButton.setOnAction(e -> showBuyHouseDialog());
         mortgageButton.setOnAction(e -> showMortgageDialog());
+
+        viewPropertiesButton.setOnAction(e -> showAllPlayersPropertiesDialog());
 
         // Game state updates
         game.getClient().getPacketHandler().setOnGameStateUpdate(
@@ -135,7 +151,7 @@ public class BoardView extends BorderPane {
         );
 
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton,mortgageButton, eventLog);
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton,mortgageButton, endTurnButton, viewPropertiesButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
@@ -271,6 +287,57 @@ public class BoardView extends BorderPane {
         dialog.showAndWait();
     }
 
+    private void showAllPlayersPropertiesDialog() {
+        GameState state = game.getGameState();
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("All Players' Properties");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setPrefWidth(560);
+
+        VBox content = new VBox(16);
+        content.setStyle("-fx-padding: 10;");
+
+        for (int i = 0; i < state.getPlayers().size(); i++) {
+            Player p = state.getPlayers().get(i);
+            Color color = getPlayerColor(i);
+            String hex = String.format("#%02X%02X%02X",
+                    (int)(color.getRed()*255), (int)(color.getGreen()*255), (int)(color.getBlue()*255));
+
+            VBox playerBox = new VBox(4);
+            playerBox.setStyle("-fx-padding: 8; -fx-border-color: " + hex + "; -fx-border-width: 2; -fx-border-radius: 4;");
+
+            HBox header = new HBox(8);
+            header.setAlignment(Pos.CENTER_LEFT);
+            Circle dot = new Circle(7, color);
+            Label playerLabel = new Label(p.getName() + "  ($" + p.getMoney() + ")");
+            playerLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13;");
+            header.getChildren().addAll(dot, playerLabel);
+            playerBox.getChildren().add(header);
+
+            if (p.getProperties().isEmpty()) {
+                playerBox.getChildren().add(new Label("  (no properties)"));
+            } else {
+                for (OwnableSquare prop : p.getProperties()) {
+                    String status = prop.isMortgaged() ? " [MORTGAGED]" : "";
+                    String extra = "";
+                    if (prop instanceof Street st) {
+                        extra = "  Houses: " + st.getNumberOfHouses() + (st.hasHotel() ? " + hotel" : "");
+                    }
+                    Label propLabel = new Label("  • " + prop.getName() + status + extra);
+                    if (prop.isMortgaged()) propLabel.setStyle("-fx-text-fill: gray;");
+                    playerBox.getChildren().add(propLabel);
+                }
+            }
+            content.getChildren().add(playerBox);
+        }
+
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(400);
+        dialog.getDialogPane().setContent(scroll);
+        dialog.showAndWait();
+    }
+
     private Dialog<Street> buildHouseDialog(List<Street> streets) {
         Dialog<Street> dialog = new Dialog<>();
         dialog.setTitle("Buy House");
@@ -397,13 +464,19 @@ public class BoardView extends BorderPane {
             spaces.get(p.getLocation()).getChildren().add(token);
         }
         if (state.getCurrentPlayer().getName().equals(game.getPlayerName())) {
+            boolean canRoll = !state.isWaitingForEndTurn() && !state.isWaitingForBuyResponse();
+            boolean canEndTurn = state.isWaitingForEndTurn() && !state.isWaitingForBuyResponse();
             statusLabel.setText("Your turn");
-            rollButton.setDisable(false);
+            rollButton.setDisable(!canRoll);
             buyHouseButton.setDisable(false);
+            mortgageButton.setDisable(false);
+            endTurnButton.setDisable(!canEndTurn);
         } else {
             statusLabel.setText(state.getCurrentPlayer().getName() + "'s turn");
             rollButton.setDisable(true);
             buyHouseButton.setDisable(true);
+            mortgageButton.setDisable(true);
+            endTurnButton.setDisable(true);
         }
 
         diceLabel.setText("Dice: " + state.getDice()[0] + " - " + state.getDice()[1]);

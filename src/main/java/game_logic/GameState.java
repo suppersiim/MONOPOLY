@@ -18,6 +18,8 @@ public class GameState implements Serializable {
     boolean waitingForBuyResponse = false;
     public OwnableSquare pendingPurchase = null;
     public Street pendingHousePurchase = null;
+    boolean waitingForEndTurn = false;
+
 
     public GameState(List<Player> players) {
         this.players = players;
@@ -45,6 +47,9 @@ public class GameState implements Serializable {
     public Street getPendingHousePurchase() {
         return pendingHousePurchase;
     }
+
+    public boolean isWaitingForEndTurn() { return waitingForEndTurn; }
+    public void setWaitingForEndTurn(boolean v) { this.waitingForEndTurn = v; }
 
     public void setWaitingForBuyResponse(boolean waitingForBuyResponse) {
         this.waitingForBuyResponse = waitingForBuyResponse;
@@ -102,6 +107,7 @@ public class GameState implements Serializable {
             this.waitingForBuyResponse = m.waitingForBuyResponse;
             this.pendingPurchase = m.pendingPurchase;
             this.pendingHousePurchase = m.pendingHousePurchase;
+            this.waitingForEndTurn = m.waitingForEndTurn;
             // TODO: add all other fields
         }
     }
