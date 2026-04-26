@@ -34,6 +34,7 @@ public class BoardView extends BorderPane {
     private Label diceLabel;
     private Label moneyLabel;
     private Label currentSquareLabel;
+    private Label middlePotLabel;
     private Button rollButton;
     private Button buyHouseButton;
     private Button mortgageButton;
@@ -95,6 +96,7 @@ public class BoardView extends BorderPane {
         currentSquareLabel = new Label("Current square: Go");
         endTurnButton = new Button("End Turn");
         viewPropertiesButton = new Button("View Properties");
+        middlePotLabel = new Label("Free Parking pot: $0");
 
         eventLog = new ListView<>();
         eventLog.setPrefSize(400, 200);
@@ -150,11 +152,38 @@ public class BoardView extends BorderPane {
                 })
         );
 
+        // If player draws a card
+        game.getClient().getPacketHandler().setOnEventLog(msg ->
+                Platform.runLater(() -> {
+                    eventLog.getItems().add(0, msg);
+                    if (eventLog.getItems().size() > 50) {
+                        eventLog.getItems().remove(50);
+                    }
+                    // show popup if a card was drawn
+                    if (msg.contains("drew a Chance card:") || msg.contains("drew a Community Chest card:")) {
+                        showCardDialog(msg);
+                    }
+                })
+        );
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton,mortgageButton, endTurnButton, viewPropertiesButton, eventLog);
+
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, middlePotLabel, rollButton, buyHouseButton,mortgageButton, endTurnButton, viewPropertiesButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
+    }
+
+    private void showCardDialog(String msg) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        if (msg.contains("Chance")) {
+            alert.setTitle("Chance Card");
+            alert.setHeaderText("Chance");
+        } else {
+            alert.setTitle("Community Chest");
+            alert.setHeaderText("Community Chest");
+        }
+        alert.setContentText(msg.substring(msg.indexOf(":") + 2));
+        alert.showAndWait();
     }
 
     /**
@@ -193,7 +222,7 @@ public class BoardView extends BorderPane {
         if (availableStreets.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("No available properties");
-            alert.setContentText("You have no streets to build a house on.");
+            alert.setContentText("You have no complete street color sets to buy houses for.");
             alert.showAndWait();
             return;
         }
@@ -398,7 +427,7 @@ public class BoardView extends BorderPane {
     private List<Street> getAvailableStreets(Player player) {
         List<Street> streets = new ArrayList<>();
         for (OwnableSquare property : player.getProperties()) {
-            if (property instanceof Street street) {
+            if (property instanceof Street street && street.isColorSetComplete() && street.getNumberOfHouses() < 5) {
                 streets.add(street);
             }
         }
@@ -482,6 +511,7 @@ public class BoardView extends BorderPane {
         diceLabel.setText("Dice: " + state.getDice()[0] + " - " + state.getDice()[1]);
         Player myPlayer = state.getPlayerByName(game.getPlayerName());
         moneyLabel.setText("Money: " + myPlayer.getMoney());
+        middlePotLabel.setText("Free Parking pot: $" + state.getMiddlePot());
         currentSquareLabel.setText("Current square: " + game.getGameState().getSquare(myPlayer.getLocation()).getName());
     }
 

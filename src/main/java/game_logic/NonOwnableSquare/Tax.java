@@ -1,6 +1,7 @@
 package game_logic.NonOwnableSquare;
 
 import game_logic.Player;
+import server.GameManager;
 
 public class Tax extends NonOwnableSquare {
 
@@ -20,5 +21,7 @@ public class Tax extends NonOwnableSquare {
         super.landOn(player);
         // player pays tax amount
         player.payMoney(getTax());
+        // add the money to the middle
+        GameManager.getInstance().getGame().addMiddlePot(getTax());
     }
 }

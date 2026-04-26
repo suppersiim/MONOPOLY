@@ -21,6 +21,9 @@ public class Monopoly extends GameState {
     public void endTurn() {
         waitingForEndTurn = false;
         currentPlayer = (currentPlayer + 1) % players.size();
+
+    public boolean isDouble() {
+        return dice[0] == dice[1];
     }
 
     public int[] diceRoll(){
@@ -28,7 +31,7 @@ public class Monopoly extends GameState {
         dice[1] = (int)(Math.random()*6+1);
 
         String event = players.get(currentPlayer).getName() + " rolled a " + dice[0] + " and a " + dice[1];
-        if (dice[0] == dice[1]) {
+        if (isDouble()) {
             event += " (doubles)";
         }
         GameManager.getInstance().broadcastEvent(event);
@@ -50,12 +53,11 @@ public class Monopoly extends GameState {
     public void resolveBuyHouse(boolean accepted) {
         Player player = players.get(currentPlayer);
         Street street = (Street) getPendingPurchase();
-        if (accepted && street != null && player.getMoney() >= street.getHousePrice()) {
+        if (accepted && street != null && player.getMoney() >= street.getHousePrice() && street.getNumberOfHouses() < 5) {
             player.buyHouse(street);
         }
 
         setPendingHousePurchase(null);
-        //currentPlayer = (currentPlayer + 1) % players.size();
     }
 
     public void onTurn(){
@@ -64,7 +66,7 @@ public class Monopoly extends GameState {
         waitingForEndTurn = false;
 
         if (player.isInJail()) {
-            if (dice[0]==dice[1]){
+            if (isDouble()){
                 player.setInJail(false);
                 doublesCount[currentPlayer] = 0;
                 currentPlayer = (currentPlayer + 1) % players.size();
@@ -79,7 +81,7 @@ public class Monopoly extends GameState {
             }
         }
         else {
-            if (dice[0] == dice[1]) {
+            if (isDouble()) {
                 doublesCount[currentPlayer] += 1;
                 if (doublesCount[currentPlayer] == 3) {
                     player.goToJail();
@@ -97,13 +99,12 @@ public class Monopoly extends GameState {
                 return;
             }
 
-            if (dice[0] == dice[1]){
+            if (isDouble()){
                 GameManager.getInstance().broadcastEvent(player.getName() + " rolled doubles — rolls again!");
             }
             else {
                 waitingForEndTurn = true;
             }
         }
-
     }
 }
