@@ -2,6 +2,7 @@ package game_logic.NonOwnableSquare;
 
 import game_logic.GameState;
 import game_logic.Player;
+import server.GameManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -105,7 +106,8 @@ public class CommunityChest extends NonOwnableSquare{
     public void landOn(Player player) {
         super.landOn(player);
         Card card = drawCard();
-        System.out.println(player.getName() + " drew a Community Chest card: " + card.getDescription());
+        //System.out.println(player.getName() + " drew a Community Chest card: " + card.getDescription());
+        GameManager.getInstance().broadcastEvent(player.getName() + " drew a Community Chest card: " + card.getDescription());
         card.applyEffect(player);
     }
 
