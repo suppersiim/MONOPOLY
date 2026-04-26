@@ -8,11 +8,13 @@ import java.util.List;
 
 public class Monopoly extends GameState {
     private int[] doublesCount;
+    private int[] turnsInJail;
 
 
     public Monopoly(List<Player> players) {
         super(players);
         doublesCount = new int[players.size()];
+        turnsInJail = new int[players.size()];
     }
 
 
@@ -60,13 +62,14 @@ public class Monopoly extends GameState {
             if (isDouble()){
                 player.setInJail(false);
                 doublesCount[currentPlayer] = 0;
+                turnsInJail[currentPlayer] = 0;
                 currentPlayer = (currentPlayer + 1) % players.size();
             }
             else {
-                doublesCount[currentPlayer] += 1;
-                if (doublesCount[currentPlayer] == 3) {
+                turnsInJail[currentPlayer] += 1;
+                if (turnsInJail[currentPlayer] == 3) {
                     player.setInJail(false);
-                    doublesCount[currentPlayer] = 0;
+                    turnsInJail[currentPlayer] = 0;
                     currentPlayer = (currentPlayer + 1) % players.size();
                 }
             }
@@ -80,6 +83,8 @@ public class Monopoly extends GameState {
                     currentPlayer = (currentPlayer + 1) % players.size();
                     return;
                 }
+            } else {
+                doublesCount[currentPlayer] = 0;
             }
 
             player.move(dice[0] + dice[1]);
