@@ -18,7 +18,7 @@ public class Card implements CardEffect, Serializable {
 
     @Override
     public void applyEffect(Player player) {
-        GameManager.getInstance().broadcastEvent(player.getName() + " drew a card: " + description);
+
         effect.applyEffect(player);
     }
 }

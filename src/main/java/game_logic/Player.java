@@ -25,6 +25,7 @@ public class Player implements Serializable {
         this.name = name;
         this.money = 1500;
         this.properties = new ArrayList<>();
+        this.playerCards = new ArrayList<>();
         this.location = 0;
         this.inJail = false;
     }
@@ -105,12 +106,6 @@ public class Player implements Serializable {
             money += 200;
         }
         location = (location + moves) % 40;
-
-        Monopoly monopoly = GameManager.getInstance().getGame();
-        Square square = monopoly.getSquare(getLocation());
-        if (square instanceof Chance)
-            System.out.println();
-        square.landOn(this);
     }
 
     public void goToJail(){
@@ -206,7 +201,20 @@ public class Player implements Serializable {
     public void givePlayerGetOutOfJailCard() {
         String event = this.name + " received a Get Out of Jail Free card!";
         GameManager.getInstance().broadcastEvent(event);
-        // TODO: add a Get Out of Jail Free card to the player's inventory
+        playerCards.add(new Card("Get Out of Jail Free", player -> {})); // add to inventory
+    }
+
+    public boolean hasGetOutOfJailCard() {
+        return playerCards != null
+                && playerCards.stream()
+                .anyMatch(c -> c.getDescription().equals("Get Out of Jail Free"));
+    }
+
+    public void useGetOutOfJailCard() {
+        playerCards.removeIf(c -> c.getDescription().equals("Get Out of Jail Free"));
+        inJail = false;
+        String event = this.name + " used a Get Out of Jail Free card!";
+        GameManager.getInstance().broadcastEvent(event);
     }
 
     public int getTotalHouses() {
