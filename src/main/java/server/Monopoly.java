@@ -8,6 +8,9 @@ import java.util.List;
 
 public class Monopoly extends GameState {
     private int[] doublesCount;
+    private boolean waitingForEndTurn = false;
+    public boolean isWaitingForEndTurn() { return waitingForEndTurn; }
+    public void setWaitingForEndTurn(boolean v) { this.waitingForEndTurn = v; }
     private int[] turnsInJail;
 
 
@@ -17,6 +20,9 @@ public class Monopoly extends GameState {
         turnsInJail = new int[players.size()];
     }
 
+    public void endTurn() {
+        waitingForEndTurn = false;
+        currentPlayer = (currentPlayer + 1) % players.size();
 
     public boolean isDouble() {
         return dice[0] == dice[1];
@@ -43,6 +49,7 @@ public class Monopoly extends GameState {
         // TODO: auction if declined
         setPendingPurchase(null);
         setWaitingForBuyResponse(false);
+        waitingForEndTurn = true;
     }
 
     public void resolveBuyHouse(boolean accepted) {
@@ -58,6 +65,8 @@ public class Monopoly extends GameState {
     public void onTurn(){
         Player player = players.get(currentPlayer);
         int[] dice = diceRoll();
+        waitingForEndTurn = false;
+
         if (player.isInJail()) {
             if (isDouble()){
                 player.setInJail(false);
@@ -99,15 +108,15 @@ public class Monopoly extends GameState {
                     return;
                 }
                 doublesCount[currentPlayer] = 0;
-                currentPlayer = (currentPlayer + 1) % players.size();
+                waitingForEndTurn = true;
                 return;
             }
 
             if (isDouble()){
-                System.out.println(player.getName() + " rolled doubles -- rolls again!");
+                GameManager.getInstance().broadcastEvent(player.getName() + " rolled doubles — rolls again!");
             }
             else {
-                currentPlayer = (currentPlayer + 1) % players.size();
+                waitingForEndTurn = true;
             }
         }
     }

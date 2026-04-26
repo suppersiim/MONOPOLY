@@ -156,6 +156,13 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
+    private void handleEndTurnPacket(DataInputStream data) throws IOException {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null) return;
+        monopoly.endTurn();
+        gameServer.getGameManager().broadcastGameState();
+    }
+
     private void handleQuitPacket(DataInputStream data) throws IOException {
         System.out.println("Received quit packet. Closing connection.");
         client.close();
@@ -192,6 +199,9 @@ public class PacketHandler {
                     break;
                 case CLIENT_UNMORTGAGE:
                     handleUnmortgagePacket(data);
+                    break;
+                case CLIENT_END_TURN:
+                    handleEndTurnPacket(data);
                     break;
             }
         } catch (IOException e) {
