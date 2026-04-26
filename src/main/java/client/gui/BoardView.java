@@ -88,7 +88,7 @@ public class BoardView extends BorderPane {
         diceLabel = new Label("Dice: * - *");
         rollButton = new Button("Roll dice");
         buyHouseButton = new Button("Buy house");
-        mortgageButton = new Button("Mortgage");
+        mortgageButton = new Button("Mortgage / Unmortgage");
         moneyLabel = new Label("Money: ");
         currentSquareLabel = new Label("Current square: Go");
 
@@ -200,19 +200,75 @@ public class BoardView extends BorderPane {
         if (properties.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("No properties");
-            alert.setContentText("You have no properties to mortgage.");
+            alert.setContentText("You have no properties to mortgage or unmortgage.");
             alert.showAndWait();
             return;
         }
 
-        Dialog<OwnableSquare> dialog = buildMortgageDialog(properties);
-        dialog.showAndWait().ifPresent(chosen -> {
-            try {
-                game.getClient().sendMortgageRequest(chosen.getName());
-            } catch (IOException ex) {
-                System.out.println("Error sending mortgage request: " + ex.getMessage());
+        List<OwnableSquare> unmortgaged = new ArrayList<>();
+        List<OwnableSquare> mortgaged = new ArrayList<>();
+        for (OwnableSquare p : properties) {
+            if (p.isMortgaged()) mortgaged.add(p);
+            else unmortgaged.add(p);
+        }
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Mortgage / Unmortgage");
+        dialog.setHeaderText("Select a property to mortgage or unmortgage.");
+        dialog.getDialogPane().setPrefWidth(520);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        VBox content = new VBox(12);
+        content.setStyle("-fx-padding: 10;");
+
+        if (!unmortgaged.isEmpty()) {
+            Label mortgageTitle = new Label("Mortgage (receive half price):");
+            mortgageTitle.setStyle("-fx-font-weight: bold;");
+            content.getChildren().add(mortgageTitle);
+            for (OwnableSquare prop : unmortgaged) {
+                HBox row = new HBox(10);
+                row.setAlignment(Pos.CENTER_LEFT);
+                Label lbl = new Label(prop.getName() + "  →  +$" + prop.getMortgageValue());
+                lbl.setMinWidth(280);
+                Button btn = new Button("Mortgage");
+                btn.setOnAction(ev -> {
+                    try { game.getClient().sendMortgageRequest(prop.getName()); }
+                    catch (IOException ex) { ex.printStackTrace(); }
+                    dialog.close();
+                });
+                row.getChildren().addAll(lbl, btn);
+                content.getChildren().add(row);
             }
-        });
+        }
+
+        if (!mortgaged.isEmpty()) {
+            Label unmortgageTitle = new Label("Unmortgage (pay back with 10% interest):");
+            unmortgageTitle.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 0 0;");
+            content.getChildren().add(unmortgageTitle);
+            for (OwnableSquare prop : mortgaged) {
+                HBox row = new HBox(10);
+                row.setAlignment(Pos.CENTER_LEFT);
+                Label lbl = new Label(prop.getName() + "  →  -$" + prop.getUnmortgageCost() + "  [MORTGAGED]");
+                lbl.setMinWidth(280);
+                lbl.setStyle("-fx-text-fill: gray;");
+                Button btn = new Button("Unmortgage");
+                boolean canAfford = game.getGameState().getPlayerByName(game.getPlayerName()).getMoney() >= prop.getUnmortgageCost();
+                btn.setDisable(!canAfford);
+                btn.setOnAction(ev -> {
+                    try { game.getClient().sendUnmortgageRequest(prop.getName()); }
+                    catch (IOException ex) { ex.printStackTrace(); }
+                    dialog.close();
+                });
+                row.getChildren().addAll(lbl, btn);
+                content.getChildren().add(row);
+            }
+        }
+
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(350);
+        dialog.getDialogPane().setContent(scroll);
+        dialog.showAndWait();
     }
 
     private Dialog<Street> buildHouseDialog(List<Street> streets) {
