@@ -89,7 +89,15 @@ public class Monopoly extends GameState {
 
             player.move(dice[0] + dice[1]);
 
+            Square square = getSquare(player.getLocation());
+            square.landOn(player);
+
             if (player.isInJail()){
+                if (player.hasGetOutOfJailCard()) {
+                    // TODO: ask player if they want to use the card
+                    player.useGetOutOfJailCard();
+                    return;
+                }
                 doublesCount[currentPlayer] = 0;
                 currentPlayer = (currentPlayer + 1) % players.size();
                 return;
