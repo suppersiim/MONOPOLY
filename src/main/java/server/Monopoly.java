@@ -23,6 +23,7 @@ public class Monopoly extends GameState {
     public void endTurn() {
         waitingForEndTurn = false;
         currentPlayer = (currentPlayer + 1) % players.size();
+    }
 
     public boolean isDouble() {
         return dice[0] == dice[1];
