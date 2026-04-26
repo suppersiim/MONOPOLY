@@ -82,6 +82,11 @@ public class GameClient {
         send(packet);
     }
 
+    public void sendUnmortgageRequest(String propertyName) throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_UNMORTGAGE, propertyName);
+        send(packet);
+    }
+
     public boolean getRunning() {
         return running;
     }

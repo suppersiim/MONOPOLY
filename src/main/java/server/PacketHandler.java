@@ -111,8 +111,49 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
-    public void handleMortgagePacket(DataInputStream data) throws IOException{
-        return;
+    public void handleMortgagePacket(DataInputStream data) throws IOException {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null) return;
+
+        String propertyName = new String(data.readAllBytes()).trim();
+        Player player = monopoly.getCurrentPlayer();
+
+        game_logic.OwnableSquare.OwnableSquare target = null;
+        for (game_logic.OwnableSquare.OwnableSquare p : player.getProperties()) {
+            if (p.getName().equals(propertyName)) { target = p; break; }
+        }
+        if (target == null) return;
+
+        if (!target.isMortgaged()) {
+            player.mortgage(target);
+            String event = player.getName() + " mortgaged " + propertyName + " for $" + target.getMortgageValue();
+            gameServer.getGameManager().broadcastEvent(event);
+        }
+        gameServer.getGameManager().broadcastGameState();
+    }
+
+    public void handleUnmortgagePacket(DataInputStream data) throws IOException {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null) return;
+
+        String propertyName = new String(data.readAllBytes()).trim();
+        Player player = monopoly.getCurrentPlayer();
+
+        game_logic.OwnableSquare.OwnableSquare target = null;
+        for (game_logic.OwnableSquare.OwnableSquare p : player.getProperties()) {
+            if (p.getName().equals(propertyName)) { target = p; break; }
+        }
+        if (target == null || !target.isMortgaged()) return;
+
+        int cost = target.getUnmortgageCost();
+        if (player.getMoney() >= cost) {
+            player.unmortgage(target);
+            String event = player.getName() + " unmortgaged " + propertyName + " for $" + cost;
+            gameServer.getGameManager().broadcastEvent(event);
+        } else {
+            gameServer.getGameManager().broadcastEvent(player.getName() + " cannot afford to unmortgage " + propertyName);
+        }
+        gameServer.getGameManager().broadcastGameState();
     }
 
     private void handleQuitPacket(DataInputStream data) throws IOException {
@@ -148,6 +189,9 @@ public class PacketHandler {
                     break;
                 case QUIT:
                     handleQuitPacket(data);
+                    break;
+                case CLIENT_UNMORTGAGE:
+                    handleUnmortgagePacket(data);
                     break;
             }
         } catch (IOException e) {
