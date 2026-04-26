@@ -136,11 +136,38 @@ public class BoardView extends BorderPane {
                 })
         );
 
+        // If player draws a card
+        game.getClient().getPacketHandler().setOnEventLog(msg ->
+                Platform.runLater(() -> {
+                    eventLog.getItems().add(0, msg);
+                    if (eventLog.getItems().size() > 50) {
+                        eventLog.getItems().remove(50);
+                    }
+                    // show popup if a card was drawn
+                    if (msg.contains("drew a Chance card:") || msg.contains("drew a Community Chest card:")) {
+                        showCardDialog(msg);
+                    }
+                })
+        );
+
 
         controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, middlePotLabel, rollButton, buyHouseButton,mortgageButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
+    }
+
+    private void showCardDialog(String msg) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        if (msg.contains("Chance")) {
+            alert.setTitle("Chance Card");
+            alert.setHeaderText("Chance");
+        } else {
+            alert.setTitle("Community Chest");
+            alert.setHeaderText("Community Chest");
+        }
+        alert.setContentText(msg.substring(msg.indexOf(":") + 2));
+        alert.showAndWait();
     }
 
     /**
