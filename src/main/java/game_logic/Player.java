@@ -1,13 +1,11 @@
 package game_logic;
 
 import game_logic.NonOwnableSquare.Card;
-import game_logic.NonOwnableSquare.Chance;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
 import game_logic.OwnableSquare.Utility;
 import server.GameManager;
-import server.Monopoly;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -37,6 +35,7 @@ public class Player implements Serializable {
 
     public void setLocation(int location) {
         this.location = location;
+        GameManager.getInstance().getGame().getSquare(location).landOn(this);
     }
 
     public boolean isInJail() {
