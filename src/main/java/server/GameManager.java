@@ -5,6 +5,7 @@ import common.PacketType;
 import game_logic.Player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class GameManager {
 
     private static GameManager instance;
 
-    private Map<Long, TradeOffer> pendingTrades;
+    private Map<Long, TradeOffer> pendingTrades = new HashMap<>();
 
     private record TradeOffer (
         String offererPlayer,
@@ -82,7 +83,7 @@ public class GameManager {
             return;
         }
         System.out.println("Starting game with players: " + String.join(", ", joinedPlayers));
-        game = new Monopoly(joinedPlayers.stream().map(Player::new).toList());
+        game = new Monopoly(new ArrayList<>(joinedPlayers.stream().map(Player::new).toList()));
         broadcastGameState();
     }
 

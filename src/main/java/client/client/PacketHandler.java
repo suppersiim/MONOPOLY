@@ -86,6 +86,10 @@ public class PacketHandler {
         this.onBuyHouseOffer = onBuyHouseOffer;
     }
 
+    public void setOnTradeOffer(Consumer<BoardView.TradeInfo> onTradeOffer) {
+        this.onTradeOffer = onTradeOffer;
+    }
+
     private void handleBuyHouseOffer(GamePacket packet) {
         String payload = packet.getStringData();
         int sep = payload.lastIndexOf(':');

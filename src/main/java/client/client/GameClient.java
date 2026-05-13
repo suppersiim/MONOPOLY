@@ -110,7 +110,7 @@ public class GameClient {
                     System.out.println("Invalid property name in trade offer: " + prop);
                     return;
                 }
-                dos.write(squareIndex);
+                dos.writeInt(squareIndex);
             }
             dos.writeInt(requestMoney);
             dos.writeInt(requestedNames.size());
@@ -120,7 +120,7 @@ public class GameClient {
                     System.out.println("Invalid property name in trade offer: " + prop);
                     return;
                 }
-                dos.write(squareIndex);
+                dos.writeInt(squareIndex);
             }
             dos.flush();
             GamePacket packet = new GamePacket(PacketType.CLIENT_TRADE_OFFER, baos.toByteArray());

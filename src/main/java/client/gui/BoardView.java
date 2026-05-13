@@ -137,6 +137,10 @@ public class BoardView extends BorderPane {
         game.getClient().getPacketHandler().setOnBuyHouseOffer((propertyName, price) ->
                 Platform.runLater(() -> showBuyDialog(propertyName, price)));
 
+        // Incoming trade offer dialog
+        game.getClient().getPacketHandler().setOnTradeOffer(tradeInfo ->
+                Platform.runLater(() -> showIncomingTradeDialog(tradeInfo)));
+
         // Register callback
         game.getClient().getPacketHandler().setOnEventLog(msg ->
                 Platform.runLater(() -> {
