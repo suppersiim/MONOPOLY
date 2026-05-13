@@ -47,8 +47,8 @@ public class BoardView extends BorderPane {
         String offerer,
         int offerMoney,
         int requestMoney,
-        OwnableSquare[] offerProperties,
-        OwnableSquare[] requestProperties
+        String[] offerProperties,
+        String[] requestProperties
     ) {}
 
     public BoardView(Game game) {
@@ -422,7 +422,14 @@ public class BoardView extends BorderPane {
         dialog.showAndWait();
     }
 
-    public void showIncomingTradeDialog(String traderName, int offerMoney, int requestMoney, List<String> offeredProps, List<String> requestedProps) {
+    public void showIncomingTradeDialog(TradeInfo tradeInfo) {
+        long tradeUID = tradeInfo.tradeUID;
+        String traderName = tradeInfo.offerer;
+        int offerMoney = tradeInfo.offerMoney;
+        int requestMoney = tradeInfo.requestMoney;
+        String[] offeredProps = tradeInfo.offerProperties;
+        String[] requestedProps = tradeInfo.requestProperties;
+
         Dialog<Boolean> dialog = new Dialog<>();
         dialog.setTitle("Trade Request");
         dialog.setHeaderText("Trade offer from " + traderName);

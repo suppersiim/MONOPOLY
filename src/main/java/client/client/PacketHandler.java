@@ -123,20 +123,20 @@ public class PacketHandler {
 
             int offerMoney = dis.readInt();
             int offeredCount = dis.readInt();
-            OwnableSquare[] offeredProperties = new OwnableSquare[offeredCount];
+            String[] offeredProperties = new String[offeredCount];
             for (int i = 0; i < offeredCount; i++) {
                 int squareIndex = dis.readInt();
                 Square square = game.getGameState().getSquare(squareIndex);
-                offeredProperties[i] = (OwnableSquare) square;
+                offeredProperties[i] = square.getName();
             }
 
             int requestMoney = dis.readInt();
             int requestedCount = dis.readInt();
-            OwnableSquare[] requestedProperties = new OwnableSquare[requestedCount];
+            String[] requestedProperties = new String[requestedCount];
             for (int i = 0; i < requestedCount; i++) {
                 int squareIndex = dis.readInt();
                 Square square = game.getGameState().getSquare(squareIndex);
-                requestedProperties[i] = (OwnableSquare) square;
+                requestedProperties[i] = square.getName();
             }
 
             String currentPlayerName = game.getGameState().getCurrentPlayer().getName();
