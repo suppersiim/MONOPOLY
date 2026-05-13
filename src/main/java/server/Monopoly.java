@@ -9,7 +9,6 @@ import java.util.List;
 public class Monopoly extends GameState {
     private int[] doublesCount;
 
-
     public Monopoly(List<Player> players) {
         super(players);
         doublesCount = new int[players.size()];
@@ -52,22 +51,34 @@ public class Monopoly extends GameState {
 
         setPendingHousePurchase(null);
     }
+    
+    public void advanceTurn() {
+        if (getCurrentPlayer().hasRolled()) {
+            getCurrentPlayer().setHasRolled(false);
+            currentPlayer = (currentPlayer + 1) % players.size();
+        }
+    }
 
     public void onTurn(){
+
+        if (getCurrentPlayer().hasRolled()) {
+            return;
+        }
+
         Player player = players.get(currentPlayer);
         int[] dice = diceRoll();
         if (player.isInJail()) {
             if (isDouble()){
                 player.setInJail(false);
                 doublesCount[currentPlayer] = 0;
-                currentPlayer = (currentPlayer + 1) % players.size();
+                player.setHasRolled(true);
             }
             else {
                 doublesCount[currentPlayer] += 1;
                 if (doublesCount[currentPlayer] == 3) {
                     player.setInJail(false);
                     doublesCount[currentPlayer] = 0;
-                    currentPlayer = (currentPlayer + 1) % players.size();
+                    player.setHasRolled(true);
                 }
             }
         }
@@ -77,24 +88,19 @@ public class Monopoly extends GameState {
                 if (doublesCount[currentPlayer] == 3) {
                     player.goToJail();
                     doublesCount[currentPlayer] = 0;
-                    currentPlayer = (currentPlayer + 1) % players.size();
+                    advanceTurn();
                     return;
                 }
             }
 
             player.move(dice[0] + dice[1]);
 
-            if (player.isInJail()){
-                doublesCount[currentPlayer] = 0;
-                currentPlayer = (currentPlayer + 1) % players.size();
-                return;
-            }
-
             if (isDouble()){
+                player.setHasRolled(false);
                 System.out.println(player.getName() + " rolled doubles -- rolls again!");
             }
             else {
-                currentPlayer = (currentPlayer + 1) % players.size();
+                player.setHasRolled(true);
             }
         }
     }

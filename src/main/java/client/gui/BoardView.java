@@ -1,5 +1,7 @@
 package client.gui;
 
+import common.GamePacket;
+import common.PacketType;
 import game_logic.GameState;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.Street;
@@ -41,6 +43,7 @@ public class BoardView extends BorderPane {
     private Button buyHouseButton;
     private Button mortgageButton;
     private Button tradeButton;
+    private Button finishTurnButton;
     private ListView<String> eventLog;
     private VBox playerStatsBox;
 
@@ -105,6 +108,7 @@ public class BoardView extends BorderPane {
         buyHouseButton = new Button("Buy house");
         mortgageButton = new Button("Mortgage / Unmortgage");
         tradeButton = new Button("Trade");
+        finishTurnButton = new Button("End Turn");
         moneyLabel = new Label("Money: ");
         currentSquareLabel = new Label("Current square: Go");
 
@@ -128,6 +132,13 @@ public class BoardView extends BorderPane {
         buyHouseButton.setOnAction(e -> showBuyHouseDialog());
         tradeButton.setOnAction(e -> showTradeDialog());
         mortgageButton.setOnAction(e -> showMortgageDialog());
+        finishTurnButton.setOnAction(e -> {
+            try {
+                game.getClient().send(new GamePacket(PacketType.CLIENT_FINISH_TURN, new byte[0]));
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
         // Game state updates
         game.getClient().getPacketHandler().setOnGameStateUpdate(
@@ -170,7 +181,7 @@ public class BoardView extends BorderPane {
                 })
         );
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton, mortgageButton, tradeButton, eventLog);
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton, mortgageButton, tradeButton, finishTurnButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
@@ -638,16 +649,21 @@ public class BoardView extends BorderPane {
         }
         if (state.getCurrentPlayer().getName().equals(game.getPlayerName())) {
             statusLabel.setText("Your turn");
-            rollButton.setDisable(false);
+
+            boolean hasRolled = game.getGameState().getPlayerByName(game.getPlayerName()).hasRolled();
+
+            rollButton.setDisable(hasRolled);
             buyHouseButton.setDisable(false);
             mortgageButton.setDisable(false);
             tradeButton.setDisable(false);
+            finishTurnButton.setDisable(!hasRolled);
         } else {
             statusLabel.setText(state.getCurrentPlayer().getName() + "'s turn");
             rollButton.setDisable(true);
             buyHouseButton.setDisable(true);
             mortgageButton.setDisable(true);
             tradeButton.setDisable(true);
+            finishTurnButton.setDisable(true);
         }
 
         diceLabel.setText("Dice: " + state.getDice()[0] + " - " + state.getDice()[1]);

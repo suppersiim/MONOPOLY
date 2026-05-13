@@ -277,6 +277,15 @@ public class PacketHandler {
         }
     }
 
+    private void handleFinishTurnPacket() {
+        if (!gameServer.getGameManager().getGame().getCurrentPlayer().hasRolled()) {
+            System.out.println("Player tried to finish turn without rolling; ignoring.");
+            return;
+        }
+        gameServer.getGameManager().getGame().advanceTurn();
+        gameServer.getGameManager().broadcastGameState();
+    }
+
     /**
      * Handle a packet from the client and dispatch to GameState
      * @param packet the packet to handle
@@ -312,6 +321,9 @@ public class PacketHandler {
                 break;
             case CLIENT_TRADE_RESPONSE:
                 handleTradeResponsePacket(packet);
+                break;
+            case CLIENT_FINISH_TURN:
+                handleFinishTurnPacket();
                 break;
             default:
                 System.out.println("Received unknown packet type: " + packet.getType());

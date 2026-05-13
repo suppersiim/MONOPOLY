@@ -20,6 +20,7 @@ public class Player implements Serializable {
     private int location;
     private boolean inJail;
     private List<Card> playerCards;
+    private boolean hasRolled;
 
     public Player(String name) {
         this.name = name;
@@ -243,5 +244,13 @@ public class Player implements Serializable {
 
     public int getNumberOfPlayers(){
         return GameManager.getInstance().getGame().getPlayers().size();
+    }
+
+    public boolean hasRolled() {
+        return hasRolled;
+    }
+
+    public void setHasRolled(boolean hasRolled) {
+        this.hasRolled = hasRolled;
     }
 }

@@ -12,6 +12,7 @@ public enum PacketType {
     CLIENT_UNMORTGAGE,
     CLIENT_TRADE_OFFER,
     CLIENT_TRADE_RESPONSE,
+    CLIENT_FINISH_TURN,
 
     // server packets
     SERVER_JOINED_PLAYERS_COUNT,
