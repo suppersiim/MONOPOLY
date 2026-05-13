@@ -6,6 +6,7 @@ import game_logic.OwnableSquare.Street;
 import game_logic.Player;
 import game_logic.Square;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -37,6 +38,7 @@ public class BoardView extends BorderPane {
     private Button rollButton;
     private Button buyHouseButton;
     private Button mortgageButton;
+    private Button tradeButton;
     private ListView<String> eventLog;
     private VBox playerStatsBox;
 
@@ -89,6 +91,7 @@ public class BoardView extends BorderPane {
         rollButton = new Button("Roll dice");
         buyHouseButton = new Button("Buy house");
         mortgageButton = new Button("Mortgage / Unmortgage");
+        tradeButton = new Button("Trade");
         moneyLabel = new Label("Money: ");
         currentSquareLabel = new Label("Current square: Go");
 
@@ -110,6 +113,7 @@ public class BoardView extends BorderPane {
         });
 
         buyHouseButton.setOnAction(e -> showBuyHouseDialog());
+        tradeButton.setOnAction(e -> showTradeDialog());
         mortgageButton.setOnAction(e -> showMortgageDialog());
 
         // Game state updates
@@ -135,7 +139,7 @@ public class BoardView extends BorderPane {
         );
 
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton,mortgageButton, eventLog);
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton, mortgageButton, tradeButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
@@ -271,6 +275,142 @@ public class BoardView extends BorderPane {
         dialog.showAndWait();
     }
 
+    private void showTradeDialog() {
+        Player currentPlayer = game.getGameState().getCurrentPlayer();
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Trade");
+        dialog.setHeaderText("Create trade offer");
+        dialog.getDialogPane().setPrefWidth(600);
+
+        ButtonType offerButtonType = new ButtonType("Make Offer", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(offerButtonType, ButtonType.CANCEL);
+
+        ComboBox<Player> targetPlayerSelect = new ComboBox<>();
+        for (Player p : game.getGameState().getPlayers()) {
+            if (p != currentPlayer) targetPlayerSelect.getItems().add(p);
+        }
+
+        targetPlayerSelect.setCellFactory(_ -> new ListCell<>() {
+            @Override
+            protected void updateItem(Player player, boolean empty) {
+                super.updateItem(player, empty);
+                setText(empty || player == null ? null : player.getName());
+            }
+        });
+        targetPlayerSelect.setButtonCell(targetPlayerSelect.getCellFactory().call(null));
+
+        // Player offer
+        VBox offerBox = new VBox(10);
+        Label offerLabel = new Label("You offer:");
+        HBox moneyOffer = new HBox(5, new Label("Money: $"), new TextField("0"));
+        TextField offerMoneyField = (TextField) moneyOffer.getChildren().get(1);
+
+        VBox offerPropsBox = new VBox(5);
+        for (OwnableSquare property : currentPlayer.getProperties()) {
+            offerPropsBox.getChildren().add(new CheckBox(property.getName()));
+        }
+        ScrollPane offerScroll = new ScrollPane(offerPropsBox);
+        offerScroll.setPrefHeight(200);
+        offerScroll.setFitToWidth(true);
+
+        offerBox.getChildren().addAll(offerLabel, moneyOffer, offerScroll);
+
+        // Player request
+        VBox requestBox = new VBox(10);
+        Label requestLabel = new Label("You want:");
+        HBox moneyRequest = new HBox(5, new Label("Money: $"), new TextField("0"));
+        TextField requestMoneyField = (TextField) moneyRequest.getChildren().get(1);
+
+        VBox requestPropsBox = new VBox(5);
+        ScrollPane requestScroll = new ScrollPane(requestPropsBox);
+        requestScroll.setPrefHeight(200);
+        requestScroll.setFitToWidth(true);
+
+        requestBox.getChildren().addAll(requestLabel, moneyRequest, requestScroll);
+
+        targetPlayerSelect.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            requestPropsBox.getChildren().clear();
+            if (newVal != null) {
+                for (OwnableSquare property : newVal.getProperties()) {
+                    requestPropsBox.getChildren().add(new CheckBox(property.getName()));
+                }
+            }
+        });
+
+        HBox tradePanels = new HBox(20);
+        tradePanels.getChildren().addAll(offerBox, requestBox);
+        VBox mainContent = new VBox(15, new HBox(10, new Label("Trade with:"), targetPlayerSelect), tradePanels);
+        mainContent.setStyle("-fx-padding: 10;");
+
+        dialog.getDialogPane().setContent(mainContent);
+
+        // Disable the "Propose" button if no player is selected
+        Node proposeButton = dialog.getDialogPane().lookupButton(offerButtonType);
+        proposeButton.setDisable(true);
+        targetPlayerSelect.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            proposeButton.setDisable(newVal == null);
+        });
+
+        proposeButton.addEventFilter(ActionEvent.ACTION, event -> {
+            try {
+                Player targetPlayer = targetPlayerSelect.getValue();
+                int offerMoney = Integer.parseInt(offerMoneyField.getText());
+                int requestMoney = Integer.parseInt(requestMoneyField.getText());
+
+                if (offerMoney > currentPlayer.getMoney()) {
+                    new Alert(Alert.AlertType.ERROR, "Not enough money!").showAndWait();
+                    event.consume();
+                } else if (targetPlayer != null && requestMoney > targetPlayer.getMoney()) {
+                    new Alert(Alert.AlertType.ERROR, targetPlayer.getName() + " does not have enough money!").showAndWait();
+                    event.consume();
+                }
+            } catch (NumberFormatException e) {
+                new Alert(Alert.AlertType.ERROR, "Invalid number for money!").showAndWait();
+                event.consume();
+            }
+        });
+
+        // Handle proposal
+        dialog.setResultConverter(button -> {
+            if (button == offerButtonType) {
+                try {
+                    Player targetPlayer = targetPlayerSelect.getValue();
+                    int offerMoney = Integer.parseInt(offerMoneyField.getText());
+                    int requestMoney = Integer.parseInt(requestMoneyField.getText());
+
+                    List<String> offeredNames = new ArrayList<>();
+                    for (Node node : offerPropsBox.getChildren()) {
+                        if (node instanceof CheckBox cb && cb.isSelected()) {
+                            offeredNames.add(cb.getText());
+                        }
+                    }
+
+                    List<String> requestedNames = new ArrayList<>();
+                    for (Node node : requestPropsBox.getChildren()) {
+                        if (node instanceof CheckBox cb && cb.isSelected()) {
+                            requestedNames.add(cb.getText());
+                        }
+                    }
+
+                    System.out.println("Proposing trade to " + targetPlayer.getName());
+                    System.out.println("Offering: $" + offerMoney + " and " + offeredNames);
+                    System.out.println("Asking for: $" + requestMoney + " and " + requestedNames);
+
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid money amount entered.");
+                }
+            }
+            return null;
+        });
+
+        if (!targetPlayerSelect.getItems().isEmpty()) {
+            targetPlayerSelect.getSelectionModel().selectFirst();
+        }
+
+        dialog.showAndWait();
+    }
+
     private Dialog<Street> buildHouseDialog(List<Street> streets) {
         Dialog<Street> dialog = new Dialog<>();
         dialog.setTitle("Buy House");
@@ -400,10 +540,14 @@ public class BoardView extends BorderPane {
             statusLabel.setText("Your turn");
             rollButton.setDisable(false);
             buyHouseButton.setDisable(false);
+            mortgageButton.setDisable(false);
+            tradeButton.setDisable(false);
         } else {
             statusLabel.setText(state.getCurrentPlayer().getName() + "'s turn");
             rollButton.setDisable(true);
             buyHouseButton.setDisable(true);
+            mortgageButton.setDisable(true);
+            tradeButton.setDisable(true);
         }
 
         diceLabel.setText("Dice: " + state.getDice()[0] + " - " + state.getDice()[1]);
