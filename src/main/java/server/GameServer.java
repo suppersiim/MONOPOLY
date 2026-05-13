@@ -64,7 +64,7 @@ public class GameServer {
 
     public void sendPacketToPlayerByName(String playerName, GamePacket packet) {
         try {
-            int playerIndex = gameManager.getGame().getPlayerIndexName(playerName);
+            int playerIndex = gameManager.getGame().getPlayerIndexByName(playerName);
             if (playerIndex == -1) {
                 System.out.println("Player " + playerName + " not found in game; cannot send packet.");
                 return;

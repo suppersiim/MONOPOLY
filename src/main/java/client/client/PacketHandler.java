@@ -26,6 +26,7 @@ public class PacketHandler {
     private BiConsumer<String, Integer> onBuyOffer = null;
     private BiConsumer<String, Integer> onBuyHouseOffer = null;
     private Consumer<BoardView.TradeInfo> onTradeOffer = null;
+    private Consumer<Boolean> onTradeResponse = null;
 
     public PacketHandler(Game game) {
         this.game = game;
@@ -88,6 +89,10 @@ public class PacketHandler {
 
     public void setOnTradeOffer(Consumer<BoardView.TradeInfo> onTradeOffer) {
         this.onTradeOffer = onTradeOffer;
+    }
+
+    public void setOnTradeResponse(Consumer<Boolean> onTradeResponse) {
+        this.onTradeResponse = onTradeResponse;
     }
 
     private void handleBuyHouseOffer(GamePacket packet) {
@@ -153,6 +158,13 @@ public class PacketHandler {
         }
     }
 
+    public void handleTradeResponse(GamePacket packet) {
+        String data = packet.getStringData();
+        if (onTradeResponse != null) {
+            onTradeResponse.accept(data.equals("accepted"));
+        }
+    }
+
 
     public void handlePacket(GamePacket packet) {
         System.out.println("Handling packet of type " + packet.getType());
@@ -174,6 +186,9 @@ public class PacketHandler {
                 break;
             case SERVER_TRADE_OFFER:
                 handleTradeOffer(packet);
+                break;
+            case SERVER_TRADE_RESPONSE:
+                handleTradeResponse(packet);
                 break;
         }
     }

@@ -25,6 +25,8 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 public class BoardView extends BorderPane {
     private final Game game;
@@ -41,6 +43,8 @@ public class BoardView extends BorderPane {
     private Button tradeButton;
     private ListView<String> eventLog;
     private VBox playerStatsBox;
+
+    private Dialog<Void> activeTradeOfferDialog;
 
     public record TradeInfo(
         long tradeUID,
@@ -151,6 +155,20 @@ public class BoardView extends BorderPane {
                 })
         );
 
+        game.getClient().getPacketHandler().setOnTradeResponse(accepted ->
+                Platform.runLater(() -> {
+                    if (activeTradeOfferDialog != null) {
+                        activeTradeOfferDialog.setResult(null);
+                        activeTradeOfferDialog.close();
+                        activeTradeOfferDialog = null;
+                    }
+                    Alert alert = new Alert(accepted ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING);
+                    alert.setTitle("Trade Result");
+                    alert.setHeaderText(accepted ? "Trade Accepted" : "Trade Rejected");
+                    alert.setContentText(accepted ? "The trade was accepted!" : "The trade was rejected.");
+                    alert.showAndWait();
+                })
+        );
 
         controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, rollButton, buyHouseButton, mortgageButton, tradeButton, eventLog);
         this.setRight(controls);
@@ -320,8 +338,10 @@ public class BoardView extends BorderPane {
         TextField offerMoneyField = (TextField) moneyOffer.getChildren().get(1);
 
         VBox offerPropsBox = new VBox(5);
+        System.out.println("My name: " + currentPlayer.getName());
         for (OwnableSquare property : currentPlayer.getProperties()) {
             offerPropsBox.getChildren().add(new CheckBox(property.getName()));
+            System.out.println("My property: " + property.getName());
         }
         ScrollPane offerScroll = new ScrollPane(offerPropsBox);
         offerScroll.setPrefHeight(200);
@@ -345,8 +365,10 @@ public class BoardView extends BorderPane {
         targetPlayerSelect.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             requestPropsBox.getChildren().clear();
             if (newVal != null) {
+                System.out.println("Selected player: " + newVal.getName());
                 for (OwnableSquare property : newVal.getProperties()) {
                     requestPropsBox.getChildren().add(new CheckBox(property.getName()));
+                    System.out.println("Their property: " + property.getName());
                 }
             }
         });
@@ -360,12 +382,14 @@ public class BoardView extends BorderPane {
 
         // Disable the "Propose" button if no player is selected
         Node proposeButton = dialog.getDialogPane().lookupButton(offerButtonType);
+        Node cancelButton = dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
         proposeButton.setDisable(true);
         targetPlayerSelect.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             proposeButton.setDisable(newVal == null);
         });
 
         proposeButton.addEventFilter(ActionEvent.ACTION, event -> {
+            event.consume();
             try {
                 Player targetPlayer = targetPlayerSelect.getValue();
                 int offerMoney = Integer.parseInt(offerMoneyField.getText());
@@ -373,57 +397,54 @@ public class BoardView extends BorderPane {
 
                 if (offerMoney > currentPlayer.getMoney()) {
                     new Alert(Alert.AlertType.ERROR, "Not enough money!").showAndWait();
-                    event.consume();
+                    return;
                 } else if (targetPlayer != null && requestMoney > targetPlayer.getMoney()) {
                     new Alert(Alert.AlertType.ERROR, targetPlayer.getName() + " does not have enough money!").showAndWait();
-                    event.consume();
+                    return;
                 }
+
+                List<String> offeredNames = new ArrayList<>();
+                for (Node node : offerPropsBox.getChildren()) {
+                    if (node instanceof CheckBox cb && cb.isSelected()) {
+                        offeredNames.add(cb.getText());
+                    }
+                }
+
+                List<String> requestedNames = new ArrayList<>();
+                for (Node node : requestPropsBox.getChildren()) {
+                    if (node instanceof CheckBox cb && cb.isSelected()) {
+                        requestedNames.add(cb.getText());
+                    }
+                }
+
+                System.out.println("Proposing trade to " + targetPlayer.getName());
+                System.out.println("Offering: $" + offerMoney + " and " + offeredNames);
+                System.out.println("Asking for: $" + requestMoney + " and " + requestedNames);
+
+                proposeButton.setDisable(true);
+                cancelButton.setDisable(true);
+                targetPlayerSelect.setDisable(true);
+                offerMoneyField.setDisable(true);
+                requestMoneyField.setDisable(true);
+                offerPropsBox.setDisable(true);
+                requestPropsBox.setDisable(true);
+                Button pb = (Button) proposeButton;
+                pb.setText("Waiting...");
+
+                game.getClient().sendTradeOffer(targetPlayer.getName(), offerMoney, offeredNames, requestMoney, requestedNames);
+
             } catch (NumberFormatException e) {
                 new Alert(Alert.AlertType.ERROR, "Invalid number for money!").showAndWait();
-                event.consume();
             }
-        });
-
-        // Handle proposal
-        dialog.setResultConverter(button -> {
-            if (button == offerButtonType) {
-                try {
-                    Player targetPlayer = targetPlayerSelect.getValue();
-                    int offerMoney = Integer.parseInt(offerMoneyField.getText());
-                    int requestMoney = Integer.parseInt(requestMoneyField.getText());
-
-                    List<String> offeredNames = new ArrayList<>();
-                    for (Node node : offerPropsBox.getChildren()) {
-                        if (node instanceof CheckBox cb && cb.isSelected()) {
-                            offeredNames.add(cb.getText());
-                        }
-                    }
-
-                    List<String> requestedNames = new ArrayList<>();
-                    for (Node node : requestPropsBox.getChildren()) {
-                        if (node instanceof CheckBox cb && cb.isSelected()) {
-                            requestedNames.add(cb.getText());
-                        }
-                    }
-
-                    System.out.println("Proposing trade to " + targetPlayer.getName());
-                    System.out.println("Offering: $" + offerMoney + " and " + offeredNames);
-                    System.out.println("Asking for: $" + requestMoney + " and " + requestedNames);
-
-                    game.getClient().sendTradeOffer(targetPlayer.getName(), offerMoney, offeredNames, requestMoney, requestedNames);
-
-                } catch (NumberFormatException e) {
-                    System.err.println("Invalid money amount entered.");
-                }
-            }
-            return null;
         });
 
         if (!targetPlayerSelect.getItems().isEmpty()) {
             targetPlayerSelect.getSelectionModel().selectFirst();
         }
 
+        activeTradeOfferDialog = dialog;
         dialog.showAndWait();
+        activeTradeOfferDialog = null;
     }
 
     public void showIncomingTradeDialog(TradeInfo tradeInfo) {
@@ -436,7 +457,15 @@ public class BoardView extends BorderPane {
 
         Dialog<Boolean> dialog = new Dialog<>();
         dialog.setTitle("Trade Request");
-        dialog.setHeaderText("Trade offer from " + traderName);
+        Text prefix = new Text("Trade offer from ");
+        Text nameText = new Text(traderName);
+
+        nameText.setFill(getPlayerColor(game.getGameState().getPlayerIndexByName(traderName)));
+        nameText.setStyle("-fx-font-weight: bold;");
+
+        TextFlow headerFlow = new TextFlow(prefix, nameText);
+
+        dialog.getDialogPane().setHeader(headerFlow);
         dialog.getDialogPane().setPrefWidth(600);
 
         ButtonType acceptButtonType = new ButtonType("Accept", ButtonBar.ButtonData.OK_DONE);
@@ -477,11 +506,7 @@ public class BoardView extends BorderPane {
         Optional<Boolean> result = dialog.showAndWait();
         boolean accepted = result.orElse(false);
 
-        try {
-            // TODO
-        } catch (Exception e) {
-            System.err.println("Error sending trade response: " + e.getMessage());
-        }
+        game.getClient().sendTradeResponse(tradeUID, accepted);
     }
 
     private Dialog<Street> buildHouseDialog(List<Street> streets) {
@@ -592,7 +617,9 @@ public class BoardView extends BorderPane {
             HBox playerInfo = new HBox(10);
             playerInfo.setAlignment(Pos.CENTER_LEFT);
             Circle colorIndicator = new Circle(7, getPlayerColor(i));
-            Label infoLabel = new Label(p.getName() + ": $" + p.getMoney());
+            String name = p.getName();
+            if (name.equals(game.getPlayerName())) name += " (You)";
+            Label infoLabel = new Label(name + ": $" + p.getMoney());
             playerInfo.getChildren().addAll(colorIndicator, infoLabel);
             playerStatsBox.getChildren().add(playerInfo);
         }

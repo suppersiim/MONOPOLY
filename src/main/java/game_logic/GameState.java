@@ -1,14 +1,10 @@
 package game_logic;
 
-import game_logic.NonOwnableSquare.*;
 import game_logic.OwnableSquare.OwnableSquare;
-import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
-import game_logic.OwnableSquare.Utility;
 
 import java.io.*;
 import java.util.List;
-import javafx.scene.paint.Color;
 
 public class GameState implements Serializable {
     public List<Player> players;
@@ -69,7 +65,7 @@ public class GameState implements Serializable {
         return null;
     }
 
-    public int getPlayerIndexName(String name) {
+    public int getPlayerIndexByName(String name) {
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getName().equals(name)) return i;
         }

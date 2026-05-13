@@ -2,6 +2,7 @@ package server;
 
 import common.GamePacket;
 import common.PacketType;
+import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.Player;
 
 import java.util.ArrayList;
@@ -21,12 +22,12 @@ public class GameManager {
     private Map<Long, TradeOffer> pendingTrades = new HashMap<>();
 
     private record TradeOffer (
-        String offererPlayer,
-        String receiverPlayer,
+        Player offerer,
+        Player receiver,
         int offerAmount,
         int receiveAmount,
-        int[] offerProperties,
-        int[] receiveProperties
+        List<OwnableSquare> offerProperties,
+        List<OwnableSquare> receiveProperties
     ) {}
 
     protected GameManager(GameServer server) {
@@ -101,28 +102,53 @@ public class GameManager {
         return instance;
     }
 
-    public long registerPendingTrade(String offererPlayer, String receiverPlayer, int offerAmount, int receiveAmount, int[] offerProperties, int[] receiveProperties) {
+    public long registerPendingTrade(String offererPlayer, String receiverPlayer, int offerAmount, int receiveAmount, List<OwnableSquare> offerProperties, List<OwnableSquare> receiveProperties) {
+
+        Player offerer = game.getPlayerByName(offererPlayer);
+        Player receiver = game.getPlayerByName(receiverPlayer);
 
         // verify no existing pending trade between the same players
         for (TradeOffer offer : pendingTrades.values()) {
-            if (offer.offererPlayer.equals(offererPlayer) && offer.receiverPlayer.equals(receiverPlayer)) {
+            if (offer.offerer == offerer && offer.receiver == receiver) {
                 System.err.println("Pending trade already exists between " + offererPlayer + " and " + receiverPlayer);
                 return -1;
             }
         }
 
         long tradeId = System.nanoTime();
-        pendingTrades.put(tradeId, new TradeOffer(offererPlayer, receiverPlayer, offerAmount, receiveAmount, offerProperties, receiveProperties));
+        pendingTrades.put(tradeId, new TradeOffer(offerer, receiver, offerAmount, receiveAmount, offerProperties, receiveProperties));
         return tradeId;
     }
 
-    public void executeTrade(long tradeId) {
+    public void executeTrade(long tradeId, boolean accepted) {
         TradeOffer offer = pendingTrades.get(tradeId);
         if (offer == null) {
             System.err.println("No pending trade found with ID: " + tradeId);
             return;
         }
-
         pendingTrades.remove(tradeId);
+        server.sendPacketToPlayerByName(offer.offerer.getName(), new GamePacket(PacketType.SERVER_TRADE_RESPONSE, accepted ? "accepted" : "rejected"));
+        if (!accepted) {
+            broadcastEvent(offer.receiver.getName() + " rejected trade offer from " + offer.offerer.getName());
+            return;
+        }
+
+        // transfer money
+        offer.offerer.payMoney(offer.offerAmount);
+        offer.receiver.addMoney(offer.offerAmount);
+        offer.receiver.payMoney(offer.receiveAmount);
+        offer.offerer.addMoney(offer.receiveAmount);
+
+        // transfer properties
+        for (OwnableSquare property : offer.offerProperties) {
+            property.setOwner(offer.receiver);
+        }
+        for (OwnableSquare property : offer.receiveProperties) {
+            property.setOwner(offer.offerer);
+        }
+
+        broadcastGameState();
+
+        broadcastEvent(offer.receiver.getName() + " accepted trade offer from " + offer.offerer.getName());
     }
 }

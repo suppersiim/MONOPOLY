@@ -8,6 +8,8 @@ import game_logic.Player;
 import game_logic.Square;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -154,27 +156,31 @@ public class PacketHandler {
             // verify offer data
             int offeredMoney = dis.readInt();
             int offeredPropertiesCount = dis.readInt();
+            List<OwnableSquare> offeredProperties = new ArrayList<>();
             int[] offeredPropertySquares = new int[offeredPropertiesCount];
             for (int i = 0; i < offeredPropertiesCount; i++) {
                 int squareIndex = dis.readInt();
-                Square sqare = gameServer.getGameManager().getGame().getSquare(squareIndex);
-                if (!(sqare instanceof OwnableSquare)) {
-                    System.out.println("Offered property is not ownable: " + sqare.getName());
+                Square square = gameServer.getGameManager().getGame().getSquare(squareIndex);
+                if (!(square instanceof OwnableSquare)) {
+                    System.out.println("Offered property is not ownable: " + square.getName());
                     return;
                 }
                 offeredPropertySquares[i] = squareIndex;
+                offeredProperties.add((OwnableSquare) square);
             }
             int requestedMoney = dis.readInt();
             int requestedPropertiesCount = dis.readInt();
+            List<OwnableSquare> requestedProperties = new ArrayList<>();
             int[] requestedPropertySquares = new int[requestedPropertiesCount];
             for (int i = 0; i < requestedPropertiesCount; i++) {
                 int squareIndex = dis.readInt();
-                Square sqare = gameServer.getGameManager().getGame().getSquare(squareIndex);
-                if (!(sqare instanceof OwnableSquare)) {
-                    System.out.println("Requested property is not ownable: " + sqare.getName());
+                Square square = gameServer.getGameManager().getGame().getSquare(squareIndex);
+                if (!(square instanceof OwnableSquare)) {
+                    System.out.println("Requested property is not ownable: " + square.getName());
                     return;
                 }
                 requestedPropertySquares[i] = squareIndex;
+                requestedProperties.add((OwnableSquare) square);
             }
 
             // create unique ID for offer, stored in GameManager
@@ -183,8 +189,8 @@ public class PacketHandler {
                 toPlayerName,
                 offeredMoney,
                 requestedMoney,
-                offeredPropertySquares,
-                requestedPropertySquares
+                offeredProperties,
+                requestedProperties
             );
 
             // tradeUID is -1 if a pending trade already exists between these players (should not happen)
@@ -222,8 +228,8 @@ public class PacketHandler {
         String propertyName = packet.getStringData().trim();
         Player player = monopoly.getCurrentPlayer();
 
-        game_logic.OwnableSquare.OwnableSquare target = null;
-        for (game_logic.OwnableSquare.OwnableSquare p : player.getProperties()) {
+        OwnableSquare target = null;
+        for (OwnableSquare p : player.getProperties()) {
             if (p.getName().equals(propertyName)) { target = p; break; }
         }
         if (target == null || !target.isMortgaged()) return;
@@ -237,6 +243,29 @@ public class PacketHandler {
             gameServer.getGameManager().broadcastEvent(player.getName() + " cannot afford to unmortgage " + propertyName);
         }
         gameServer.getGameManager().broadcastGameState();
+    }
+
+    private void handleTradeResponsePacket(GamePacket packet) {
+        String payload = packet.getStringData();
+        String[] parts = payload.split(":");
+        if (parts.length != 2) {
+            System.out.println("Invalid trade response format");
+            return;
+        }
+
+        boolean accepted = "accepted".equals(parts[0]);
+        long tradeUID;
+        try {
+            tradeUID = Long.parseLong(parts[1]);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid trade UID in response");
+            return;
+        }
+
+        gameServer.getGameManager().executeTrade(tradeUID, accepted);
+
+        String currentPlayerName = gameServer.getGameManager().getGame().getCurrentPlayer().getName();
+        gameServer.sendPacketToPlayerByName(currentPlayerName, new GamePacket(PacketType.SERVER_TRADE_RESPONSE, accepted ? "accepted" : "rejected"));
     }
 
     private void handleQuitPacket() {
@@ -280,6 +309,12 @@ public class PacketHandler {
                 break;
             case CLIENT_UNMORTGAGE:
                 handleUnmortgagePacket(packet);
+                break;
+            case CLIENT_TRADE_RESPONSE:
+                handleTradeResponsePacket(packet);
+                break;
+            default:
+                System.out.println("Received unknown packet type: " + packet.getType());
                 break;
         }
     }

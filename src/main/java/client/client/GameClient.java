@@ -84,23 +84,10 @@ public class GameClient {
         send(packet);
     }
 
-    public void sendUnmortgageRequest(String propertyName) throws IOException {
-        GamePacket packet = new GamePacket(PacketType.CLIENT_UNMORTGAGE, propertyName);
-        send(packet);
-    }
-
-    public boolean getRunning() {
-        return running;
-    }
-
-    public PacketHandler getPacketHandler() {
-        return packetHandler;
-    }
-
     public void sendTradeOffer(String name, int offerMoney, List<String> offeredNames, int requestMoney, List<String> requestedNames) {
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (DataOutputStream dos = new DataOutputStream(baos)) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(baos);
             dos.writeUTF(name);
             dos.writeInt(offerMoney);
             dos.writeInt(offeredNames.size());
@@ -126,7 +113,29 @@ public class GameClient {
             GamePacket packet = new GamePacket(PacketType.CLIENT_TRADE_OFFER, baos.toByteArray());
             send(packet);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error sending trade offer: " + e.getMessage());
         }
+    }
+
+    public void sendTradeResponse(long tradeUID, boolean accepted) {
+        try {
+            String payload = (accepted ? "accepted" : "rejected") + ":" + tradeUID;
+            send(new GamePacket(PacketType.CLIENT_TRADE_RESPONSE, payload));
+        } catch (IOException e) {
+            System.out.println("Error sending trade response: " + e.getMessage());
+        }
+    }
+
+    public void sendUnmortgageRequest(String name) throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_UNMORTGAGE, name);
+        send(packet);
+    }
+
+    public boolean getRunning() {
+        return running;
+    }
+
+    public PacketHandler getPacketHandler() {
+        return packetHandler;
     }
 }
