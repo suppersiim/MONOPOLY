@@ -4,10 +4,12 @@ import client.Game;
 import common.GamePacket;
 import common.PacketType;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.List;
 
 public class GameClient {
 
@@ -82,8 +84,50 @@ public class GameClient {
         send(packet);
     }
 
-    public void sendUnmortgageRequest(String propertyName) throws IOException {
-        GamePacket packet = new GamePacket(PacketType.CLIENT_UNMORTGAGE, propertyName);
+    public void sendTradeOffer(String name, int offerMoney, List<String> offeredNames, int requestMoney, List<String> requestedNames) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeUTF(name);
+            dos.writeInt(offerMoney);
+            dos.writeInt(offeredNames.size());
+            for (String prop : offeredNames) {
+                int squareIndex = game.getGameState().getSquareIndexByName(prop);
+                if (squareIndex < 0) {
+                    System.out.println("Invalid property name in trade offer: " + prop);
+                    return;
+                }
+                dos.writeInt(squareIndex);
+            }
+            dos.writeInt(requestMoney);
+            dos.writeInt(requestedNames.size());
+            for (String prop : requestedNames) {
+                int squareIndex = game.getGameState().getSquareIndexByName(prop);
+                if (squareIndex < 0) {
+                    System.out.println("Invalid property name in trade offer: " + prop);
+                    return;
+                }
+                dos.writeInt(squareIndex);
+            }
+            dos.flush();
+            GamePacket packet = new GamePacket(PacketType.CLIENT_TRADE_OFFER, baos.toByteArray());
+            send(packet);
+        } catch (IOException e) {
+            System.out.println("Error sending trade offer: " + e.getMessage());
+        }
+    }
+
+    public void sendTradeResponse(long tradeUID, boolean accepted) {
+        try {
+            String payload = (accepted ? "accepted" : "rejected") + ":" + tradeUID;
+            send(new GamePacket(PacketType.CLIENT_TRADE_RESPONSE, payload));
+        } catch (IOException e) {
+            System.out.println("Error sending trade response: " + e.getMessage());
+        }
+    }
+
+    public void sendUnmortgageRequest(String name) throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_UNMORTGAGE, name);
         send(packet);
     }
 
