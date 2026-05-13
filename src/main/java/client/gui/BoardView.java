@@ -168,16 +168,25 @@ public class BoardView extends BorderPane {
 
         game.getClient().getPacketHandler().setOnTradeResponse(accepted ->
                 Platform.runLater(() -> {
+
                     if (activeTradeOfferDialog != null) {
-                        activeTradeOfferDialog.setResult(null);
                         activeTradeOfferDialog.close();
                         activeTradeOfferDialog = null;
                     }
-                    Alert alert = new Alert(accepted ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING);
-                    alert.setTitle("Trade Result");
-                    alert.setHeaderText(accepted ? "Trade Accepted" : "Trade Rejected");
-                    alert.setContentText(accepted ? "The trade was accepted!" : "The trade was rejected.");
-                    alert.showAndWait();
+
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(
+                                accepted ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING
+                        );
+
+                        alert.setTitle("Trade Result");
+                        alert.setHeaderText(accepted ? "Trade Accepted" : "Trade Rejected");
+                        alert.setContentText(
+                                accepted ? "The trade was accepted!" : "The trade was rejected."
+                        );
+
+                        alert.showAndWait();
+                    });
                 })
         );
 

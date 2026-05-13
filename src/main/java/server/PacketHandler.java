@@ -263,9 +263,6 @@ public class PacketHandler {
         }
 
         gameServer.getGameManager().executeTrade(tradeUID, accepted);
-
-        String currentPlayerName = gameServer.getGameManager().getGame().getCurrentPlayer().getName();
-        gameServer.sendPacketToPlayerByName(currentPlayerName, new GamePacket(PacketType.SERVER_TRADE_RESPONSE, accepted ? "accepted" : "rejected"));
     }
 
     private void handleQuitPacket() {
