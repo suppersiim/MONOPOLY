@@ -5,10 +5,11 @@ import common.PacketType;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.Street;
 import game_logic.Player;
+import game_logic.Square;
 
-import java.io.DataInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Properties;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PacketHandler {
     private final ClientHandler client;
@@ -19,8 +20,8 @@ public class PacketHandler {
         this.client = client;
     }
 
-    private void handleClientJoinPacket(DataInputStream data) throws IOException {
-        String playerName = new String(data.readAllBytes());
+    private void handleClientJoinPacket(GamePacket packet) {
+        String playerName = packet.getStringData().trim();
         GameManager gameManager = gameServer.getGameManager();
         if (gameManager.getGame() != null) {
             System.err.println("Player " + playerName + " tried to join, but game is already running!");
@@ -32,14 +33,18 @@ public class PacketHandler {
         }
         gameManager.addPlayer(playerName);
         int playerCount = gameManager.getJoinedPlayersCount();
-        gameServer.sendToAllClients(new GamePacket(PacketType.SERVER_JOINED_PLAYERS_COUNT, Integer.toString(playerCount)));
+        try {
+            gameServer.sendToAllClients(new GamePacket(PacketType.SERVER_JOINED_PLAYERS_COUNT, Integer.toString(playerCount)));
+        } catch (IOException e) {
+            System.out.println("Error sending joined players count: " + e.getMessage());
+        }
     }
 
-    private void handleStartGamePacket(DataInputStream data) throws IOException {
+    private void handleStartGamePacket() {
         gameServer.getGameManager().startGame();
     }
 
-    private void handleRollPacket(DataInputStream data) throws IOException {
+    private void handleRollPacket() {
         Monopoly monopoly = gameServer.getGameManager().getGame();
         if (monopoly == null) {
             System.out.println("No game state available; cannot handle roll packet.");
@@ -52,15 +57,17 @@ public class PacketHandler {
             String name = monopoly.getPendingPurchase().getName();
             int price = monopoly.getPendingPurchase().getPrice();
             String payload = name + ":" + price;
-            client.send(new GamePacket(PacketType.SERVER_BUY_OFFER, payload));
+            try {
+                client.send(new GamePacket(PacketType.SERVER_BUY_OFFER, payload));
+            } catch (IOException e) {
+                System.out.println("Error sending buy offer: " + e.getMessage());
+            }
         }
-
-
 
         gameServer.getGameManager().broadcastGameState();
     }
 
-    private void handleBuyResponsePacket(DataInputStream data) throws IOException {
+    private void handleBuyResponsePacket(GamePacket packet) {
         Monopoly monopoly = gameServer.getGameManager().getGame();
         if (monopoly == null || !monopoly.isWaitingForBuyResponse()) {
             System.out.println("Received unexpected buy response; ignoring.");
@@ -71,7 +78,7 @@ public class PacketHandler {
         String propertyName = monopoly.getPendingPurchase().getName();
         int price = monopoly.getPendingPurchase().getPrice();
 
-        String response = new String(data.readAllBytes()).trim();
+        String response = packet.getStringData().trim();
         boolean accepted = response.equalsIgnoreCase("yes");
         monopoly.resolveBuy(accepted);
 
@@ -82,7 +89,7 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
-    private void handleBuyHouseResponsePacket(DataInputStream data) throws IOException {
+    private void handleBuyHouseResponsePacket(GamePacket packet) {
         System.out.println("handleBuyHouseResponsePacket called");
         Monopoly monopoly = gameServer.getGameManager().getGame();
         if (monopoly == null) {
@@ -90,7 +97,7 @@ public class PacketHandler {
             return;
         }
 
-        String payload = new String(data.readAllBytes()).trim();
+        String payload = packet.getStringData().trim();
         boolean accepted = payload.startsWith("yes");
 
         if (!accepted) return;
@@ -111,11 +118,11 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
-    public void handleMortgagePacket(DataInputStream data) throws IOException {
+    public void handleMortgagePacket(GamePacket packet) {
         Monopoly monopoly = gameServer.getGameManager().getGame();
         if (monopoly == null) return;
 
-        String propertyName = new String(data.readAllBytes()).trim();
+        String propertyName = packet.getStringData().trim();
         Player player = monopoly.getCurrentPlayer();
 
         game_logic.OwnableSquare.OwnableSquare target = null;
@@ -132,11 +139,87 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
-    public void handleUnmortgagePacket(DataInputStream data) throws IOException {
+    private void handleTradeOfferPacket(GamePacket packet) {
+        byte[] data = packet.getData();
+        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
+            String toPlayerName = dis.readUTF();
+
+            // get player by name
+            Player toPlayer = gameServer.getGameManager().getGame().getPlayerByName(toPlayerName);
+            if (toPlayer == null) {
+                System.out.println("Trade offer to unknown player: " + toPlayerName);
+                return;
+            }
+
+            // verify offer data
+            int offeredMoney = dis.readInt();
+            int offeredPropertiesCount = dis.readInt();
+            int[] offeredPropertySquares = new int[offeredPropertiesCount];
+            for (int i = 0; i < offeredPropertiesCount; i++) {
+                int squareIndex = dis.readInt();
+                Square sqare = gameServer.getGameManager().getGame().getSquare(squareIndex);
+                if (!(sqare instanceof OwnableSquare)) {
+                    System.out.println("Offered property is not ownable: " + sqare.getName());
+                    return;
+                }
+                offeredPropertySquares[i] = squareIndex;
+            }
+            int requestedMoney = dis.readInt();
+            int requestedPropertiesCount = dis.readInt();
+            int[] requestedPropertySquares = new int[requestedPropertiesCount];
+            for (int i = 0; i < requestedPropertiesCount; i++) {
+                int squareIndex = dis.readInt();
+                Square sqare = gameServer.getGameManager().getGame().getSquare(squareIndex);
+                if (!(sqare instanceof OwnableSquare)) {
+                    System.out.println("Requested property is not ownable: " + sqare.getName());
+                    return;
+                }
+                requestedPropertySquares[i] = squareIndex;
+            }
+
+            // create unique ID for offer, stored in GameManager
+            long tradeUID = gameServer.getGameManager().registerPendingTrade(
+                gameServer.getGameManager().getGame().getCurrentPlayer().getName(),
+                toPlayerName,
+                offeredMoney,
+                requestedMoney,
+                offeredPropertySquares,
+                requestedPropertySquares
+            );
+
+            // tradeUID is -1 if a pending trade already exists between these players (should not happen)
+            if (tradeUID < 0) {
+                System.out.println("Failed to register trade offer");
+                return;
+            }
+
+            // send the offer packet to target player, including the tradeUID for response/identification
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try (DataOutputStream dos = new DataOutputStream(baos)) {
+                dos.writeLong(tradeUID);
+                dos.writeInt(offeredMoney);
+                dos.writeInt(offeredPropertiesCount);
+                for (int squareIndex : offeredPropertySquares) {
+                    dos.writeInt(squareIndex);
+                }
+                dos.writeInt(requestedMoney);
+                dos.writeInt(requestedPropertiesCount);
+                for (int squareIndex : requestedPropertySquares) {
+                    dos.writeInt(squareIndex);
+                }
+                dos.flush();
+                gameServer.sendPacketToPlayerByName(toPlayerName, new GamePacket(PacketType.SERVER_TRADE_OFFER, baos.toByteArray()));
+            }
+        } catch (IOException e) {
+            System.out.println("Error handling trade offer packet: " + e.getMessage());
+        }
+    }
+
+    public void handleUnmortgagePacket(GamePacket packet) {
         Monopoly monopoly = gameServer.getGameManager().getGame();
         if (monopoly == null) return;
 
-        String propertyName = new String(data.readAllBytes()).trim();
+        String propertyName = packet.getStringData().trim();
         Player player = monopoly.getCurrentPlayer();
 
         game_logic.OwnableSquare.OwnableSquare target = null;
@@ -156,9 +239,13 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
-    private void handleQuitPacket(DataInputStream data) throws IOException {
+    private void handleQuitPacket() {
         System.out.println("Received quit packet. Closing connection.");
-        client.close();
+        try {
+            client.close();
+        } catch (IOException e) {
+            System.out.println("Error closing client: " + e.getMessage());
+        }
     }
 
     /**
@@ -166,36 +253,34 @@ public class PacketHandler {
      * @param packet the packet to handle
      */
     public void handlePacket(GamePacket packet) {
-        DataInputStream data = new DataInputStream(packet.getDataStream());
-        try {
-            switch (packet.getType()) {
-                case PacketType.CLIENT_JOIN:
-                    handleClientJoinPacket(data);
-                    break;
-                case CLIENT_START_GAME:
-                    handleStartGamePacket(data);
-                    break;
-                case CLIENT_ROLL:
-                    handleRollPacket(data);
-                    break;
-                case CLIENT_BUY_RESPONSE:
-                    handleBuyResponsePacket(data);
-                    break;
-                case CLIENT_BUY_HOUSE_RESPONSE:
-                    handleBuyHouseResponsePacket(data);
-                    break;
-                case CLIENT_MORTGAGE:
-                    handleMortgagePacket(data);
-                    break;
-                case QUIT:
-                    handleQuitPacket(data);
-                    break;
-                case CLIENT_UNMORTGAGE:
-                    handleUnmortgagePacket(data);
-                    break;
-            }
-        } catch (IOException e) {
-            System.out.println("Error handling [" + packet.getType() + "] packet: " + e.getMessage());
+        switch (packet.getType()) {
+            case PacketType.CLIENT_JOIN:
+                handleClientJoinPacket(packet);
+                break;
+            case CLIENT_START_GAME:
+                handleStartGamePacket();
+                break;
+            case CLIENT_ROLL:
+                handleRollPacket();
+                break;
+            case CLIENT_BUY_RESPONSE:
+                handleBuyResponsePacket(packet);
+                break;
+            case CLIENT_BUY_HOUSE_RESPONSE:
+                handleBuyHouseResponsePacket(packet);
+                break;
+            case CLIENT_MORTGAGE:
+                handleMortgagePacket(packet);
+                break;
+            case CLIENT_TRADE_OFFER:
+                 handleTradeOfferPacket(packet);
+                 break;
+            case QUIT:
+                handleQuitPacket();
+                break;
+            case CLIENT_UNMORTGAGE:
+                handleUnmortgagePacket(packet);
+                break;
         }
     }
 }

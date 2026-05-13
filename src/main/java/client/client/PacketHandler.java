@@ -1,10 +1,17 @@
 package client.client;
 
 import client.Game;
+import client.gui.BoardView;
 import common.GamePacket;
 import common.PacketType;
 import game_logic.GameState;
+import game_logic.OwnableSquare.OwnableSquare;
+import game_logic.Square;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -18,6 +25,7 @@ public class PacketHandler {
 
     private BiConsumer<String, Integer> onBuyOffer = null;
     private BiConsumer<String, Integer> onBuyHouseOffer = null;
+    private Consumer<BoardView.TradeInfo> onTradeOffer = null;
 
     public PacketHandler(Game game) {
         this.game = game;
@@ -56,7 +64,7 @@ public class PacketHandler {
 
     private void handleBuyOffer(GamePacket packet) {
         // Payload format: "<propertyName>:<price>"
-        String payload = new String(packet.getData());
+        String payload = packet.getStringData();
         int sep = payload.lastIndexOf(':');
         if (sep < 0 || onBuyOffer == null) return;
         String name = payload.substring(0, sep);
@@ -79,7 +87,7 @@ public class PacketHandler {
     }
 
     private void handleBuyHouseOffer(GamePacket packet) {
-        String payload = new String(packet.getData());
+        String payload = packet.getStringData();
         int sep = payload.lastIndexOf(':');
         if (sep < 0 || onBuyHouseOffer == null) return;
         String name = payload.substring(0, sep);
@@ -102,8 +110,43 @@ public class PacketHandler {
     }
 
     private void handleEventLog(GamePacket packet) {
-        String msg = new String(packet.getData());
+        String msg = packet.getStringData();
         if (onEventLog != null) onEventLog.accept(msg);
+    }
+
+    public void handleTradeOffer(GamePacket packet) {
+        byte[] data = packet.getData();
+        ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        try (DataInputStream dis = new DataInputStream(bais)) {
+
+            long offerId = dis.readLong();
+
+            int offerMoney = dis.readInt();
+            int offeredCount = dis.readInt();
+            OwnableSquare[] offeredProperties = new OwnableSquare[offeredCount];
+            for (int i = 0; i < offeredCount; i++) {
+                int squareIndex = dis.readInt();
+                Square square = game.getGameState().getSquare(squareIndex);
+                offeredProperties[i] = (OwnableSquare) square;
+            }
+
+            int requestMoney = dis.readInt();
+            int requestedCount = dis.readInt();
+            OwnableSquare[] requestedProperties = new OwnableSquare[requestedCount];
+            for (int i = 0; i < requestedCount; i++) {
+                int squareIndex = dis.readInt();
+                Square square = game.getGameState().getSquare(squareIndex);
+                requestedProperties[i] = (OwnableSquare) square;
+            }
+
+            String currentPlayerName = game.getGameState().getCurrentPlayer().getName();
+            BoardView.TradeInfo tradeInfo = new BoardView.TradeInfo(offerId, currentPlayerName, offerMoney, requestMoney, offeredProperties, requestedProperties);
+            if (onTradeOffer != null) {
+                onTradeOffer.accept(tradeInfo);
+            }
+        } catch (Exception e) {
+            System.out.println("Error parsing trade offer: " + e.getMessage());
+        }
     }
 
 
@@ -124,6 +167,9 @@ public class PacketHandler {
                 break;
             case SERVER_EVENT_LOG:
                 handleEventLog(packet);
+                break;
+            case SERVER_TRADE_OFFER:
+                handleTradeOffer(packet);
                 break;
         }
     }

@@ -10,6 +10,7 @@ public enum PacketType {
     CLIENT_BUY_HOUSE_RESPONSE,
     CLIENT_MORTGAGE,
     CLIENT_UNMORTGAGE,
+    CLIENT_TRADE_OFFER,
 
     // server packets
     SERVER_JOINED_PLAYERS_COUNT,
@@ -17,6 +18,7 @@ public enum PacketType {
     SERVER_BUY_OFFER,
     SERVER_BUY_HOUSE_OFFER,
     SERVER_EVENT_LOG,
+    SERVER_TRADE_OFFER,
 
     // general packets
     QUIT;

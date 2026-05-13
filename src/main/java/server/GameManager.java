@@ -6,6 +6,7 @@ import game_logic.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class GameManager {
 
@@ -15,6 +16,17 @@ public class GameManager {
     private List<String> joinedPlayers = new ArrayList<>();
 
     private static GameManager instance;
+
+    private Map<Long, TradeOffer> pendingTrades;
+
+    private record TradeOffer (
+        String offererPlayer,
+        String receiverPlayer,
+        int offerAmount,
+        int receiveAmount,
+        int[] offerProperties,
+        int[] receiveProperties
+    ) {}
 
     protected GameManager(GameServer server) {
         this.server = server;
@@ -86,5 +98,30 @@ public class GameManager {
 
     public static GameManager getInstance() {
         return instance;
+    }
+
+    public long registerPendingTrade(String offererPlayer, String receiverPlayer, int offerAmount, int receiveAmount, int[] offerProperties, int[] receiveProperties) {
+
+        // verify no existing pending trade between the same players
+        for (TradeOffer offer : pendingTrades.values()) {
+            if (offer.offererPlayer.equals(offererPlayer) && offer.receiverPlayer.equals(receiverPlayer)) {
+                System.err.println("Pending trade already exists between " + offererPlayer + " and " + receiverPlayer);
+                return -1;
+            }
+        }
+
+        long tradeId = System.nanoTime();
+        pendingTrades.put(tradeId, new TradeOffer(offererPlayer, receiverPlayer, offerAmount, receiveAmount, offerProperties, receiveProperties));
+        return tradeId;
+    }
+
+    public void executeTrade(long tradeId) {
+        TradeOffer offer = pendingTrades.get(tradeId);
+        if (offer == null) {
+            System.err.println("No pending trade found with ID: " + tradeId);
+            return;
+        }
+
+        pendingTrades.remove(tradeId);
     }
 }

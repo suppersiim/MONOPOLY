@@ -39,10 +39,39 @@ public class GameServer {
     }
 
     public void removeClient(ClientHandler client) {
+        int playerIndex = clients.indexOf(client);
+        if (playerIndex > gameManager.getGame().currentPlayer)
+            gameManager.getGame().currentPlayer--;
+
+        gameManager.getGame().players.remove(playerIndex);
         clients.remove(client);
+
         if (clients.isEmpty()) {
             System.out.println("All clients disconnected. Resetting game state.");
             gameManager.resetGame();
+        }
+        else {
+            gameManager.broadcastGameState();
+        }
+    }
+
+    public ClientHandler getClientByPlayerIndex(int playerIndex) {
+        if (playerIndex < 0 || playerIndex >= clients.size()) {
+            return null;
+        }
+        return clients.get(playerIndex);
+    }
+
+    public void sendPacketToPlayerByName(String playerName, GamePacket packet) {
+        try {
+            int playerIndex = gameManager.getGame().getPlayerIndexName(playerName);
+            if (playerIndex == -1) {
+                System.out.println("Player " + playerName + " not found in game; cannot send packet.");
+                return;
+            }
+            getClientByPlayerIndex(playerIndex).send(packet);
+        } catch (Exception e) {
+            System.out.println("Error sending packet to player " + playerName + ": " + e.getMessage());
         }
     }
 

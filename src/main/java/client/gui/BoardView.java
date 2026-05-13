@@ -42,6 +42,15 @@ public class BoardView extends BorderPane {
     private ListView<String> eventLog;
     private VBox playerStatsBox;
 
+    public record TradeInfo(
+        long tradeUID,
+        String offerer,
+        int offerMoney,
+        int requestMoney,
+        OwnableSquare[] offerProperties,
+        OwnableSquare[] requestProperties
+    ) {}
+
     public BoardView(Game game) {
         this.game = game;
         grid = new GridPane();
@@ -397,6 +406,8 @@ public class BoardView extends BorderPane {
                     System.out.println("Offering: $" + offerMoney + " and " + offeredNames);
                     System.out.println("Asking for: $" + requestMoney + " and " + requestedNames);
 
+                    game.getClient().sendTradeOffer(targetPlayer.getName(), offerMoney, offeredNames, requestMoney, requestedNames);
+
                 } catch (NumberFormatException e) {
                     System.err.println("Invalid money amount entered.");
                 }
@@ -409,6 +420,57 @@ public class BoardView extends BorderPane {
         }
 
         dialog.showAndWait();
+    }
+
+    public void showIncomingTradeDialog(String traderName, int offerMoney, int requestMoney, List<String> offeredProps, List<String> requestedProps) {
+        Dialog<Boolean> dialog = new Dialog<>();
+        dialog.setTitle("Trade Request");
+        dialog.setHeaderText("Trade offer from " + traderName);
+        dialog.getDialogPane().setPrefWidth(600);
+
+        ButtonType acceptButtonType = new ButtonType("Accept", ButtonBar.ButtonData.OK_DONE);
+        ButtonType rejectButtonType = new ButtonType("Reject", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(acceptButtonType, rejectButtonType);
+
+        // They offer
+        VBox offerBox = new VBox(10);
+        Label offerLabel = new Label(traderName + " offers:");
+        offerLabel.setStyle("-fx-font-weight: bold;");
+        Label moneyOfferLabel = new Label("Money: $" + offerMoney);
+
+        ListView<String> offerPropsList = new ListView<>();
+        offerPropsList.getItems().addAll(offeredProps);
+        offerPropsList.setPrefHeight(200);
+        offerBox.getChildren().addAll(offerLabel, moneyOfferLabel, offerPropsList);
+
+        // They request
+        VBox requestBox = new VBox(10);
+        Label requestLabel = new Label(traderName + " wants:");
+        requestLabel.setStyle("-fx-font-weight: bold;");
+        Label moneyRequestLabel = new Label("Money: $" + requestMoney);
+
+        ListView<String> requestPropsList = new ListView<>();
+        requestPropsList.getItems().addAll(requestedProps);
+        requestPropsList.setPrefHeight(200);
+        requestBox.getChildren().addAll(requestLabel, moneyRequestLabel, requestPropsList);
+
+        HBox tradePanels = new HBox(20);
+        tradePanels.getChildren().addAll(offerBox, requestBox);
+        VBox mainContent = new VBox(15, tradePanels);
+        mainContent.setStyle("-fx-padding: 10;");
+
+        dialog.getDialogPane().setContent(mainContent);
+
+        dialog.setResultConverter(button -> button == acceptButtonType);
+
+        Optional<Boolean> result = dialog.showAndWait();
+        boolean accepted = result.orElse(false);
+
+        try {
+            // TODO
+        } catch (Exception e) {
+            System.err.println("Error sending trade response: " + e.getMessage());
+        }
     }
 
     private Dialog<Street> buildHouseDialog(List<Street> streets) {

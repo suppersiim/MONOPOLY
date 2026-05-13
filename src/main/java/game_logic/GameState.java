@@ -69,6 +69,13 @@ public class GameState implements Serializable {
         return null;
     }
 
+    public int getPlayerIndexName(String name) {
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getName().equals(name)) return i;
+        }
+        return -1;
+    }
+
     public int[] getDice() {
         return dice;
     }
@@ -113,5 +120,14 @@ public class GameState implements Serializable {
             }
         }
         return null;
+    }
+
+    public int getSquareIndexByName(String name) {
+        for (int i = 0; i < squares.size(); i++) {
+            if (squares.get(i).getName().equals(name)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

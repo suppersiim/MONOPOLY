@@ -4,10 +4,12 @@ import client.Game;
 import common.GamePacket;
 import common.PacketType;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.List;
 
 public class GameClient {
 
@@ -93,5 +95,38 @@ public class GameClient {
 
     public PacketHandler getPacketHandler() {
         return packetHandler;
+    }
+
+    public void sendTradeOffer(String name, int offerMoney, List<String> offeredNames, int requestMoney, List<String> requestedNames) {
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (DataOutputStream dos = new DataOutputStream(baos)) {
+            dos.writeUTF(name);
+            dos.writeInt(offerMoney);
+            dos.writeInt(offeredNames.size());
+            for (String prop : offeredNames) {
+                int squareIndex = game.getGameState().getSquareIndexByName(prop);
+                if (squareIndex < 0) {
+                    System.out.println("Invalid property name in trade offer: " + prop);
+                    return;
+                }
+                dos.write(squareIndex);
+            }
+            dos.writeInt(requestMoney);
+            dos.writeInt(requestedNames.size());
+            for (String prop : requestedNames) {
+                int squareIndex = game.getGameState().getSquareIndexByName(prop);
+                if (squareIndex < 0) {
+                    System.out.println("Invalid property name in trade offer: " + prop);
+                    return;
+                }
+                dos.write(squareIndex);
+            }
+            dos.flush();
+            GamePacket packet = new GamePacket(PacketType.CLIENT_TRADE_OFFER, baos.toByteArray());
+            send(packet);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
