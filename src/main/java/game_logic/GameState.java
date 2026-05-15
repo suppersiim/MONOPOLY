@@ -1,14 +1,10 @@
 package game_logic;
 
-import game_logic.NonOwnableSquare.*;
 import game_logic.OwnableSquare.OwnableSquare;
-import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
-import game_logic.OwnableSquare.Utility;
 
 import java.io.*;
 import java.util.List;
-import javafx.scene.paint.Color;
 
 public class GameState implements Serializable {
     public List<Player> players;
@@ -18,7 +14,6 @@ public class GameState implements Serializable {
     boolean waitingForBuyResponse = false;
     public OwnableSquare pendingPurchase = null;
     public Street pendingHousePurchase = null;
-    boolean waitingForEndTurn = false;
 
     public int middlePot = 0; // money that is collected when players pay tax and collected when someone lands on free parking
 
@@ -48,9 +43,6 @@ public class GameState implements Serializable {
     public Street getPendingHousePurchase() {
         return pendingHousePurchase;
     }
-
-    public boolean isWaitingForEndTurn() { return waitingForEndTurn; }
-    public void setWaitingForEndTurn(boolean v) { this.waitingForEndTurn = v; }
 
     public void setWaitingForBuyResponse(boolean waitingForBuyResponse) {
         this.waitingForBuyResponse = waitingForBuyResponse;
@@ -87,6 +79,13 @@ public class GameState implements Serializable {
         this.middlePot = middlePot;
     }
 
+    public int getPlayerIndexByName(String name) {
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getName().equals(name)) return i;
+        }
+        return -1;
+    }
+
     public int[] getDice() {
         return dice;
     }
@@ -120,7 +119,6 @@ public class GameState implements Serializable {
             this.waitingForBuyResponse = m.waitingForBuyResponse;
             this.pendingPurchase = m.pendingPurchase;
             this.pendingHousePurchase = m.pendingHousePurchase;
-            this.waitingForEndTurn = m.waitingForEndTurn;
             this.middlePot = m.middlePot;
             // TODO: add all other fields
         }
@@ -133,5 +131,14 @@ public class GameState implements Serializable {
             }
         }
         return null;
+    }
+
+    public int getSquareIndexByName(String name) {
+        for (int i = 0; i < squares.size(); i++) {
+            if (squares.get(i).getName().equals(name)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
