@@ -13,6 +13,8 @@ public enum PacketType {
     CLIENT_TRADE_OFFER,
     CLIENT_TRADE_RESPONSE,
     CLIENT_FINISH_TURN,
+    CLIENT_AUCTION_BID,
+    CLIENT_AUCTION_PASS,
 
     // server packets
     SERVER_JOINED_PLAYERS_COUNT,
@@ -22,6 +24,7 @@ public enum PacketType {
     SERVER_EVENT_LOG,
     SERVER_TRADE_OFFER,
     SERVER_TRADE_RESPONSE,
+    SERVER_AUCTION_UPDATE,
 
     // general packets
     QUIT;

@@ -4,7 +4,10 @@ import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.Street;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GameState implements Serializable {
     public List<Player> players;
@@ -14,6 +17,7 @@ public class GameState implements Serializable {
     boolean waitingForBuyResponse = false;
     public OwnableSquare pendingPurchase = null;
     public Street pendingHousePurchase = null;
+    public AuctionState auctionState = null;
 
     public int middlePot = 0; // money that is collected when players pay tax and collected when someone lands on free parking
 
@@ -120,6 +124,7 @@ public class GameState implements Serializable {
             this.pendingPurchase = m.pendingPurchase;
             this.pendingHousePurchase = m.pendingHousePurchase;
             this.middlePot = m.middlePot;
+            this.auctionState = m.auctionState;
             // TODO: add all other fields
         }
     }
@@ -140,5 +145,32 @@ public class GameState implements Serializable {
             }
         }
         return -1;
+    }
+
+    public static class AuctionState implements Serializable {
+        public String propertyName;
+        public int propertySquareIndex;
+        public Map<String, Integer> bids = new HashMap<>();
+        public List<String> passed = new ArrayList<>();
+        public int currentBidderIndex;
+        public int startingPlayerIndex;
+
+        public AuctionState(String propertyName, int propertySquareIndex, int startingPlayerIndex) {
+            this.propertyName = propertyName;
+            this.propertySquareIndex = propertySquareIndex;
+            this.startingPlayerIndex = startingPlayerIndex;
+            this.currentBidderIndex = startingPlayerIndex;
+        }
+
+        public int getHighestBid() {
+            return bids.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        }
+
+        public String getHighestBidder() {
+            return bids.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse(null);
+        }
     }
 }
