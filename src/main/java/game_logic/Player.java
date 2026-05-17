@@ -1,6 +1,7 @@
 package game_logic;
 
 import game_logic.NonOwnableSquare.Card;
+import game_logic.NonOwnableSquare.GetOutOfJailEffect;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
@@ -38,6 +39,11 @@ public class Player implements Serializable {
         GameManager.getInstance().getGame().getSquare(location).landOn(this);
     }
 
+    // Same as setLocation, but without the landOn method
+    public void setLocationSilent(int location) {
+        this.location = location; // no landOn
+    }
+
     public boolean isInJail() {
         return inJail;
     }
@@ -50,12 +56,11 @@ public class Player implements Serializable {
         return money;
     }
 
-    /*
+
     public List<Player> getAllPlayers(){
-        return getplayers()
+        List<Player> players = GameManager.getInstance().getGame().getPlayers();
+        return players;
     }
-    //TODO: get all players
-     */
 
     public List<OwnableSquare> getProperties() {
         return properties;
@@ -178,9 +183,7 @@ public class Player implements Serializable {
         }
         // If the player is past all railroads, loop back to the first one
         if (nearestRailroad == 0) nearestRailroad = 5;
-        setLocation(nearestRailroad);
-
-        //TODO: check if square is owned
+        setLocationSilent(nearestRailroad);
 
     }
 
@@ -195,13 +198,13 @@ public class Player implements Serializable {
         }
         // If the player is past both utilities, loop back to the first one
         if (nearestUtility == 0) nearestUtility = 12;
-        setLocation(nearestUtility);
+        setLocationSilent(nearestUtility);
     }
 
     public void givePlayerGetOutOfJailCard() {
         String event = this.name + " received a Get Out of Jail Free card!";
         GameManager.getInstance().broadcastEvent(event);
-        playerCards.add(new Card("Get Out of Jail Free", player -> {})); // add to inventory
+        playerCards.add(new Card("Get Out of Jail Free", new GetOutOfJailEffect()));
     }
 
     public boolean hasGetOutOfJailCard() {

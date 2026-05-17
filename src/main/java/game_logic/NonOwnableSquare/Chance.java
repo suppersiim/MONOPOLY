@@ -1,6 +1,9 @@
 package game_logic.NonOwnableSquare;
 
+import game_logic.OwnableSquare.RailRoad;
+import game_logic.OwnableSquare.Utility;
 import game_logic.Player;
+import game_logic.Square;
 import server.GameManager;
 
 import java.util.ArrayList;
@@ -8,11 +11,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class Chance extends NonOwnableSquare{
-
-    public Chance() {
-        super("Chance");
-    }
-
     /*
     //LIST OF CHANCE CARDS:
     final String[] chanceCards = {
@@ -34,7 +32,7 @@ public class Chance extends NonOwnableSquare{
             "Your building loan matures. Collect $150"
     };
     */
-    // TODO: replace movePlayerToSquare with move method and add int moves as param
+
     private final List<Card> allChanceCards = List.of(
 
             new Card("Advance to Boardwalk",
@@ -47,16 +45,56 @@ public class Chance extends NonOwnableSquare{
                     player -> player.move(player.calculateDistance(24))),
 
             new Card("Advance to St. Charles Place. If you pass Go, collect $200",
-                    player -> player.move(player.calculateDistance(11))), // TODO: check if player passed GO
+                    player -> player.move(player.calculateDistance(11))),
 
             new Card("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental",
-                    player -> player.movePlayerToNearestRailroad()), // TODO: pay double rent
+                    player -> {
+                        player.movePlayerToNearestRailroad();
+                        Square square = GameManager.getInstance().getGame().getSquare(player.getLocation());
+                        if (square instanceof RailRoad railroad) {
+                            if (railroad.getOwner() == null) {
+                                // offer to buy the property
+                                railroad.landOn(player);
+                            } else if (railroad.getOwner() != player) {
+                                // pay double rent if owned buy
+                                int doubleRent = railroad.calculateRent() * 2;
+                                player.payRentToPlayer(doubleRent, railroad.getOwner());
+                            }
+                        }
+                    }),
 
             new Card("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental",
-                    player -> player.movePlayerToNearestRailroad()), // TODO: pay double rent
+                    player -> {
+                        player.movePlayerToNearestRailroad();
+                        Square square = GameManager.getInstance().getGame().getSquare(player.getLocation());
+                        if (square instanceof RailRoad railroad) {
+                            if (railroad.getOwner() == null) {
+                                // offer to buy the property
+                                railroad.landOn(player);
+                            } else if (railroad.getOwner() != player) {
+                                // pay double rent if owned buy
+                                int doubleRent = railroad.calculateRent() * 2;
+                                player.payRentToPlayer(doubleRent, railroad.getOwner());
+                            }
+                        }
+                    }),
 
             new Card("Advance to nearest Utility. If unowned, you may buy it. If owned, throw dice and pay owner ten times amount thrown",
-                    player -> player.movePlayerToNearestUtility()), // TODO: pay 10x dice roll
+                    player -> {
+                        player.movePlayerToNearestUtility();
+                        Square square = GameManager.getInstance().getGame().getSquare(player.getLocation());
+                        if (square instanceof Utility utility) {
+                            if (utility.getOwner() == null) {
+                                utility.landOn(player);
+                            } else if (utility.getOwner() != player) {
+                                // roll dice and pay 10x
+                                int roll = (int)(Math.random() * 6 + 1) + (int)(Math.random() * 6 + 1);
+                                int rent = roll * 10;
+                                GameManager.getInstance().broadcastEvent(player.getName() + " rolled " + roll + " for utility rent");
+                                player.payRentToPlayer(rent, utility.getOwner());
+                            }
+                        }
+                    }),
 
             new Card("Bank pays you dividend of $50",
                     player -> player.addMoney(50)),
@@ -75,7 +113,7 @@ public class Chance extends NonOwnableSquare{
                         int houses = player.getTotalHouses();
                         int hotels = player.getTotalHotels();
                         player.payMoney(houses * 25 + hotels * 100);
-                    }),
+            }),
 
             new Card("Speeding fine $15",
                     player -> player.payMoney(15)),
@@ -84,14 +122,30 @@ public class Chance extends NonOwnableSquare{
                     player -> player.move(player.calculateDistance(5))),
 
             new Card("You have been elected Chairman of the Board. Pay each player $50",
-                    player -> {/*TODO: get all players}*/}),
+                    player -> {
+                List<Player> players = player.getAllPlayers();
+                int total = 0;
+                for (Player p : players) {
+                    if (player != p){
+                        player.payMoney(50);
+                        p.addMoney(50);
+                        total += 50;
+                    }
+                }
+                GameManager.getInstance().broadcastEvent(player.getName() + " paid each player $50 (total: $" + total + ")");
+            }),
 
             new Card("Your building loan matures. Collect $150",
                     player -> player.addMoney(150))
     );
 
-    // Simulate card deck, where you draw a card from the top untill there are no more cards left
-    private final List<Card> chanceDeck = new ArrayList<>(allChanceCards);
+    private final List<Card> chanceDeck;
+
+    public Chance() {
+        super("Chance");
+        chanceDeck = new ArrayList<>(allChanceCards);
+        Collections.shuffle(chanceDeck);
+    }
 
     public Card drawCard() {
         // Reshuffle deck if empty
