@@ -9,11 +9,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommunityChest extends NonOwnableSquare{
-
-    public CommunityChest() {
-        super("Community Chest");
-    }
-
     /*
     private final String[] communityChestCards = {
             "Advance to Go (Collect $200)",
@@ -62,7 +57,18 @@ public class CommunityChest extends NonOwnableSquare{
                     player -> player.addMoney(20)),
 
             new Card("It is your birthday. Collect $10 from every player",
-                    player -> { /* TODO: collect $10 from every other player */ }),
+                    player -> {
+                        List<Player> players = player.getAllPlayers();
+                        int total = 0;
+                        for (Player p : players) {
+                            if (p != player) {
+                                p.payMoney(10);
+                                player.addMoney(10);
+                                total += 10;
+                            }
+                        }
+                        GameManager.getInstance().broadcastEvent(player.getName() + " collected $10 from each player for their birthday! (total: $" + total + ")");
+                    }),
 
             new Card("Life insurance matures. Collect $100",
                     player -> player.addMoney(100)),
@@ -90,7 +96,13 @@ public class CommunityChest extends NonOwnableSquare{
                     player -> player.addMoney(100))
     );
 
-    private final List<Card> communityChestDeck = new ArrayList<>(allCommunityChestCards);
+    private final List<Card> communityChestDeck;
+
+    public CommunityChest() {
+        super("Community Chest");
+        communityChestDeck = new ArrayList<>(allCommunityChestCards);
+        Collections.shuffle(communityChestDeck);
+    }
 
     public Card drawCard() {
         // Reshuffle deck if empty
