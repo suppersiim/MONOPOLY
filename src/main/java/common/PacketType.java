@@ -14,6 +14,8 @@ public enum PacketType {
     CLIENT_TRADE_RESPONSE,
     CLIENT_FINISH_TURN,
     CLIENT_DECLARE_BANKRUPTCY,
+    CLIENT_AUCTION_BID,
+    CLIENT_AUCTION_PASS,
 
     // server packets
     SERVER_JOINED_PLAYERS_COUNT,
@@ -26,6 +28,7 @@ public enum PacketType {
     SERVER_USE_JAIL_CARD_OFFER,
     CLIENT_USE_JAIL_CARD_RESPONSE,
 
+    SERVER_AUCTION_UPDATE,
 
     // general packets
     QUIT;

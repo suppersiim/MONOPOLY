@@ -78,6 +78,10 @@ public class GameManager {
         }
     }
 
+    public void broadcastAuctionState() {
+        broadcastGameState();
+    }
+
     public void startGame() {
         if (joinedPlayers.isEmpty()) {
             System.out.println("Not enough players to start the game.");

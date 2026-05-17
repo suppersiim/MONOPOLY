@@ -332,6 +332,25 @@ public class PacketHandler {
             monopoly.eliminatePlayer(player);
             gameServer.getGameManager().broadcastGameState();
         }
+    private void handleAuctionBidPacket(GamePacket packet) {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null || monopoly.auctionState == null) return;
+        String payload = packet.getStringData().trim();
+        int sep = payload.lastIndexOf(':');
+        if (sep < 0) return;
+        String playerName = payload.substring(0, sep);
+        int bid;
+        try {
+            bid = Integer.parseInt(payload.substring(sep + 1));
+        } catch (NumberFormatException e) { return; }
+        monopoly.resolveAuctionBid(playerName, bid);
+    }
+
+    private void handleAuctionPassPacket(GamePacket packet) {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null || monopoly.auctionState == null) return;
+        String playerName = packet.getStringData().trim();
+        monopoly.resolveAuctionPass(playerName);
     }
 
     /**
@@ -378,6 +397,12 @@ public class PacketHandler {
                 break;
             case CLIENT_USE_JAIL_CARD_RESPONSE:
                 handleJailCardResponsePacket(packet);
+                break;
+            case CLIENT_AUCTION_BID:
+                handleAuctionBidPacket(packet);
+                break;
+            case CLIENT_AUCTION_PASS:
+                handleAuctionPassPacket(packet);
                 break;
             default:
                 System.out.println("Received unknown packet type: " + packet.getType());
