@@ -131,6 +131,17 @@ public class GameClient {
         send(packet);
     }
 
+    public void sendJailCardResponse(boolean accepted) throws IOException {
+        String response = accepted ? "yes" : "no";
+        GamePacket packet = new GamePacket(PacketType.CLIENT_USE_JAIL_CARD_RESPONSE, response);
+        send(packet);
+    }
+
+    public void sendFinishTurn() throws IOException {
+        GamePacket packet = new GamePacket(PacketType.CLIENT_FINISH_TURN, new byte[0]);
+        send(packet);
+    }
+
     public boolean getRunning() {
         return running;
     }

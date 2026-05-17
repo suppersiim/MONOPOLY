@@ -14,6 +14,7 @@ public class GameState implements Serializable {
     boolean waitingForBuyResponse = false;
     public OwnableSquare pendingPurchase = null;
     public Street pendingHousePurchase = null;
+    boolean waitingForJailCardResponse = false;
 
     public int middlePot = 0; // money that is collected when players pay tax and collected when someone lands on free parking
 
@@ -54,6 +55,14 @@ public class GameState implements Serializable {
 
     public void setPendingHousePurchase(Street pendingHousePurchase) {
         this.pendingHousePurchase = pendingHousePurchase;
+    }
+
+    public boolean isWaitingForJailCardResponse() {
+        return waitingForJailCardResponse;
+    }
+
+    public void setWaitingForJailCardResponse(boolean b) {
+        waitingForJailCardResponse = b;
     }
 
     public int getCurrentPlayerIndex() {
@@ -120,7 +129,7 @@ public class GameState implements Serializable {
             this.pendingPurchase = m.pendingPurchase;
             this.pendingHousePurchase = m.pendingHousePurchase;
             this.middlePot = m.middlePot;
-            // TODO: add all other fields
+            this.waitingForJailCardResponse = m.waitingForJailCardResponse;
         }
     }
 

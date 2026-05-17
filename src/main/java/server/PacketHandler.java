@@ -52,6 +52,17 @@ public class PacketHandler {
         }
         monopoly.onTurn();
 
+        // send jail card offer if waiting
+        if (monopoly.isWaitingForJailCardResponse()) {
+            try {
+                client.send(new GamePacket(PacketType.SERVER_USE_JAIL_CARD_OFFER, "Use your Get Out of Jail Free card?"));
+            } catch (IOException e) {
+                System.out.println("Error sending jail card offer: " + e.getMessage());
+            }
+            gameServer.getGameManager().broadcastGameState();
+            return;
+        }
+
         //If onTurn() paused for a buy decision, send an offer to the current player only
         if (monopoly.isWaitingForBuyResponse()) {
             String name = monopoly.getPendingPurchase().getName();
@@ -283,6 +294,46 @@ public class PacketHandler {
         gameServer.getGameManager().broadcastGameState();
     }
 
+    private void handleJailCardResponsePacket(GamePacket packet) {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null || !monopoly.isWaitingForJailCardResponse()) return;
+
+        boolean accepted = packet.getStringData().trim().equalsIgnoreCase("yes");
+        monopoly.setWaitingForJailCardResponse(false);
+
+        if (accepted) {
+            monopoly.getCurrentPlayer().useGetOutOfJailCard();
+            // Card used, player is now free — run the full turn normally
+            monopoly.onTurn();
+        } else {
+            // Player declined — skip the card check or it loops forever
+            monopoly.rollAndSkipCardCheck();
+        }
+
+        if (monopoly.isWaitingForBuyResponse()) {
+            String name = monopoly.getPendingPurchase().getName();
+            int price = monopoly.getPendingPurchase().getPrice();
+            try {
+                client.send(new GamePacket(PacketType.SERVER_BUY_OFFER, name + ":" + price));
+            } catch (IOException e) {
+                System.out.println("Error sending buy offer: " + e.getMessage());
+            }
+        }
+
+        gameServer.getGameManager().broadcastGameState();
+    }
+
+    private void handleDeclareBankruptcy(GamePacket packet) {
+        Monopoly monopoly = gameServer.getGameManager().getGame();
+        if (monopoly == null) return;
+
+        Player player = monopoly.getCurrentPlayer();
+        if (player.isBankrupt()) {
+            monopoly.eliminatePlayer(player);
+            gameServer.getGameManager().broadcastGameState();
+        }
+    }
+
     /**
      * Handle a packet from the client and dispatch to GameState
      * @param packet the packet to handle
@@ -321,6 +372,12 @@ public class PacketHandler {
                 break;
             case CLIENT_FINISH_TURN:
                 handleFinishTurnPacket();
+                break;
+            case CLIENT_DECLARE_BANKRUPTCY:
+                handleDeclareBankruptcy(packet);
+                break;
+            case CLIENT_USE_JAIL_CARD_RESPONSE:
+                handleJailCardResponsePacket(packet);
                 break;
             default:
                 System.out.println("Received unknown packet type: " + packet.getType());

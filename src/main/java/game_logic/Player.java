@@ -157,9 +157,14 @@ public class Player implements Serializable {
         return utilitiesOwned;
     }
 
-    public boolean isBankrupt(){
-        // TODO: check if player has any money (has houses? can mortgage something? has cash?)
-        return false;
+    public boolean isBankrupt() {
+        if (money > 0) return false;
+        // check if player can mortgage anything
+        for (OwnableSquare property : properties) {
+            if (!property.isMortgaged()) return false; // can still mortgage
+            if (property instanceof Street street && street.getNumberOfHouses() > 0) return false; // can sell houses
+        }
+        return true; // no money and nothing to sell/mortgage
     }
 
     public void movePlayerToSquare(int squareIndex) {
@@ -202,6 +207,7 @@ public class Player implements Serializable {
     }
 
     public void givePlayerGetOutOfJailCard() {
+        if (playerCards == null) playerCards = new ArrayList<>();
         String event = this.name + " received a Get Out of Jail Free card!";
         GameManager.getInstance().broadcastEvent(event);
         playerCards.add(new Card("Get Out of Jail Free", new GetOutOfJailEffect()));

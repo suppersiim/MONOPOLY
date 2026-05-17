@@ -48,6 +48,7 @@ public class BoardView extends BorderPane {
     private ListView<String> eventLog;
     private VBox playerStatsBox;
     private Button viewPropertiesButton;
+    private Button bankruptcyButton;
 
     private Dialog<Void> activeTradeOfferDialog;
 
@@ -115,6 +116,7 @@ public class BoardView extends BorderPane {
         currentSquareLabel = new Label("Current square: Go");
         viewPropertiesButton = new Button("View Properties");
         middlePotLabel = new Label("Free Parking pot: $0");
+        bankruptcyButton = new Button("Declare Bankruptcy");
 
         eventLog = new ListView<>();
         eventLog.setPrefSize(400, 200);
@@ -185,6 +187,29 @@ public class BoardView extends BorderPane {
                     }
                 })
         );
+
+        // Jail card offer dialog
+        game.getClient().getPacketHandler().setOnJailCardOffer(message ->
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.setTitle("Get Out of Jail Free");
+                    alert.setHeaderText("You have a Get Out of Jail Free card!");
+                    alert.setContentText("Do you want to use it to get out of jail?");
+
+                    ButtonType useCard = new ButtonType("Use Card");
+                    ButtonType skip = new ButtonType("Don't Use", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    alert.getButtonTypes().setAll(useCard, skip);
+
+                    Optional<ButtonType> result = alert.showAndWait();
+                    boolean accepted = result.isPresent() && result.get() == useCard;
+                    try {
+                        game.getClient().sendJailCardResponse(accepted);
+                    } catch (IOException e) {
+                        System.out.println("Error sending jail card response: " + e.getMessage());
+                    }
+                })
+        );
+
         game.getClient().getPacketHandler().setOnTradeResponse(accepted ->
                 Platform.runLater(() -> {
 
@@ -209,7 +234,7 @@ public class BoardView extends BorderPane {
                 })
         );
 
-        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, middlePotLabel, rollButton, buyHouseButton, mortgageButton, tradeButton, viewPropertiesButton, finishTurnButton, eventLog);
+        controls.getChildren().addAll(statusLabel, diceLabel, moneyLabel, currentSquareLabel, middlePotLabel, rollButton, buyHouseButton, mortgageButton, tradeButton, viewPropertiesButton, finishTurnButton, bankruptcyButton, eventLog);
         this.setRight(controls);
 
         update(game.getGameState());
@@ -748,6 +773,7 @@ public class BoardView extends BorderPane {
             buyHouseButton.setDisable(false);
             mortgageButton.setDisable(false);
             tradeButton.setDisable(false);
+            bankruptcyButton.setDisable(false);
             finishTurnButton.setDisable(!hasRolled);
         } else {
             statusLabel.setText(state.getCurrentPlayer().getName() + "'s turn");
@@ -755,6 +781,7 @@ public class BoardView extends BorderPane {
             buyHouseButton.setDisable(true);
             mortgageButton.setDisable(true);
             tradeButton.setDisable(true);
+            bankruptcyButton.setDisable(true);
             finishTurnButton.setDisable(true);
         }
 

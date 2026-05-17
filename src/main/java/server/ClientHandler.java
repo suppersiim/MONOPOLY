@@ -55,7 +55,6 @@ public class ClientHandler implements Runnable {
     }
 
     private void receive() throws IOException {
-        // TODO: dismiss packet if unexpected sender
         GamePacket packet = GamePacket.readFrom(in);
         packetHandler.handlePacket(packet);
     }

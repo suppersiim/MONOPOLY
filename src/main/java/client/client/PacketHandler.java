@@ -7,9 +7,12 @@ import common.PacketType;
 import game_logic.GameState;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.Square;
+import server.GameServer;
+import server.Monopoly;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -22,6 +25,7 @@ public class PacketHandler {
     private Consumer<Integer> onJoinedPlayersCount = null;
 
     private Consumer<String> onEventLog = null;
+    private Consumer<String> onJailCardOffer = null;
 
     private BiConsumer<String, Integer> onBuyOffer = null;
     private BiConsumer<String, Integer> onBuyHouseOffer = null;
@@ -123,6 +127,14 @@ public class PacketHandler {
         if (onEventLog != null) onEventLog.accept(msg);
     }
 
+    public void setOnJailCardOffer(Consumer<String> onJailCardOffer) {
+        this.onJailCardOffer = onJailCardOffer;
+    }
+
+    private void handleJailCardOffer(GamePacket packet) {
+        if (onJailCardOffer != null) onJailCardOffer.accept(packet.getStringData());
+    }
+
     public void handleTradeOffer(GamePacket packet) {
         byte[] data = packet.getData();
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
@@ -189,6 +201,9 @@ public class PacketHandler {
                 break;
             case SERVER_TRADE_RESPONSE:
                 handleTradeResponse(packet);
+                break;
+            case SERVER_USE_JAIL_CARD_OFFER:
+                handleJailCardOffer(packet);
                 break;
         }
     }
