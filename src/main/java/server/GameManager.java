@@ -83,7 +83,7 @@ public class GameManager {
     }
 
     public void startGame() {
-        if (joinedPlayers.isEmpty()) { // TODO: min 2 players
+        if (joinedPlayers.isEmpty()) {
             System.out.println("Not enough players to start the game.");
             return;
         }

@@ -1,6 +1,7 @@
 package server;
 
 import game_logic.GameState;
+import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.Street;
 import game_logic.Player;
 import game_logic.Square;
@@ -49,6 +50,8 @@ public class Monopoly extends GameState {
             setWaitingForBuyResponse(false);
             startAuction(property);
         }
+        setPendingPurchase(null);
+        setWaitingForBuyResponse(false);
     }
 
     private void startAuction(OwnableSquare property) {
@@ -123,6 +126,19 @@ public class Monopoly extends GameState {
         setPendingHousePurchase(null);
     }
 
+    public void eliminatePlayer(Player player) {
+        // return properties to bank
+        for (OwnableSquare property : player.getProperties()) {
+            property.setOwner(null);
+            property.setMortgaged(false);
+            if (property instanceof Street street) {
+                while (street.getNumberOfHouses() > 0) street.removeHouse();
+            }
+        }
+        players.remove(player);
+        GameManager.getInstance().broadcastEvent(player.getName() + " is bankrupt and has been eliminated!");
+    }
+
     public void advanceTurn() {
         if (getCurrentPlayer().hasRolled()) {
             getCurrentPlayer().setHasRolled(false);
@@ -130,13 +146,43 @@ public class Monopoly extends GameState {
         }
     }
 
+    public void rollAndSkipCardCheck() {
+        Player player = players.get(currentPlayer);
+        if (player.hasRolled()) return;
+
+        int[] dice = diceRoll();
+
+        if (player.isInJail()) {
+            if (isDouble()) {
+                player.setInJail(false);
+                doublesCount[currentPlayer] = 0;
+                turnsInJail[currentPlayer] = 0;
+                player.setHasRolled(true);
+            } else {
+                turnsInJail[currentPlayer] += 1;
+                if (turnsInJail[currentPlayer] == 3) {
+                    player.setInJail(false);
+                    doublesCount[currentPlayer] = 0;
+                    turnsInJail[currentPlayer] = 0;
+                    player.setHasRolled(true);
+                }
+            }
+        }
+    }
+
     public void onTurn(){
 
+        Player player = players.get(currentPlayer);
         if (getCurrentPlayer().hasRolled()) {
             return;
         }
 
-        Player player = players.get(currentPlayer);
+        // check for jail card BEFORE rolling
+        if (player.isInJail() && player.hasGetOutOfJailCard() && !isWaitingForJailCardResponse()) {
+            setWaitingForJailCardResponse(true);
+            return; // pause and wait for player response
+        }
+
         int[] dice = diceRoll();
         if (player.isInJail()) {
             if (isDouble()){
@@ -173,10 +219,9 @@ public class Monopoly extends GameState {
             Square square = getSquare(player.getLocation());
             square.landOn(player);
 
-            if (player.isInJail()){
-                if (player.hasGetOutOfJailCard()) {
-                    // TODO: ask player if they want to use the card
-                    player.useGetOutOfJailCard();
+            if (player.isInJail()) {
+                if (player.hasGetOutOfJailCard() && !isWaitingForJailCardResponse()) {
+                    setWaitingForJailCardResponse(true);
                     return;
                 }
                 doublesCount[currentPlayer] = 0;
