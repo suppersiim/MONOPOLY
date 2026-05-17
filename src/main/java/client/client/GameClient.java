@@ -131,6 +131,14 @@ public class GameClient {
         send(packet);
     }
 
+    public void sendAuctionBid(String playerName, int amount) throws IOException {
+        send(new GamePacket(PacketType.CLIENT_AUCTION_BID, playerName + ":" + amount));
+    }
+
+    public void sendAuctionPass(String playerName) throws IOException {
+        send(new GamePacket(PacketType.CLIENT_AUCTION_PASS, playerName));
+    }
+
     public boolean getRunning() {
         return running;
     }

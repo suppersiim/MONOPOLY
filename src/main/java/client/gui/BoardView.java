@@ -29,6 +29,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.scene.control.Separator;
+
 
 public class BoardView extends BorderPane {
     private final Game game;
@@ -50,6 +52,9 @@ public class BoardView extends BorderPane {
     private Button viewPropertiesButton;
 
     private Dialog<Void> activeTradeOfferDialog;
+
+    private Dialog<Void> activeAuctionDialog = null;
+    private VBox auctionContent = null;
 
     public record TradeInfo(
         long tradeUID,
@@ -148,7 +153,18 @@ public class BoardView extends BorderPane {
 
         // Game state updates
         game.getClient().getPacketHandler().setOnGameStateUpdate(
-                state -> Platform.runLater(() -> update(state)));
+                state -> Platform.runLater(() -> {
+                    update(state);
+                    if (state.auctionState == null && activeAuctionDialog != null) {
+                        activeAuctionDialog.close();
+                        activeAuctionDialog = null;
+                        auctionContent = null;
+                    }
+                }));
+
+        // Auction
+        game.getClient().getPacketHandler().setOnAuctionUpdate(
+                state -> Platform.runLater(() -> showAuctionDialog(state)));
 
         // Buy offer dialog — only shown to the player who landed on the property
         game.getClient().getPacketHandler().setOnBuyOffer((propertyName, price) ->
@@ -252,9 +268,118 @@ public class BoardView extends BorderPane {
         }
     }
 
-    public void auction(String propertyName, int price){
-        // TODO: get all other players and make an auction between them
-        // TODO: pop-up window where there is 10s to place a bid and if someone overbids then there is up to 5s time for others to then overbid that guy
+    public void showAuctionDialog(GameState state) {
+        GameState.AuctionState auction = state.auctionState;
+        if (auction == null) return;
+
+        boolean isMyTurn = game.getPlayerName().equals(
+                state.getPlayers().get(auction.currentBidderIndex).getName());
+        boolean iHavePassed = auction.passed.contains(game.getPlayerName());
+
+        if (activeAuctionDialog != null) {
+            refreshAuctionContent(state, auction, isMyTurn, iHavePassed);
+            return;
+        }
+
+        activeAuctionDialog = new Dialog<>();
+        activeAuctionDialog.setTitle("Auction: " + auction.propertyName);
+        activeAuctionDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        activeAuctionDialog.getDialogPane().lookupButton(ButtonType.CLOSE).setDisable(true);
+        activeAuctionDialog.getDialogPane().setPrefWidth(420);
+
+        auctionContent = new VBox(12);
+        auctionContent.setStyle("-fx-padding: 12;");
+        refreshAuctionContent(state, auction, isMyTurn, iHavePassed);
+
+        ScrollPane scroll = new ScrollPane(auctionContent);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(360);
+        activeAuctionDialog.getDialogPane().setContent(scroll);
+        activeAuctionDialog.show();
+    }
+
+    private void refreshAuctionContent(GameState state, GameState.AuctionState auction,
+                                       boolean isMyTurn, boolean iHavePassed) {
+        if (auctionContent == null) return;
+        auctionContent.getChildren().clear();
+
+        int highestBid = auction.getHighestBid();
+        String highestBidder = auction.getHighestBidder();
+
+        Label propertyLabel = new Label("Property: " + auction.propertyName);
+        propertyLabel.setStyle("-fx-font-size: 15; -fx-font-weight: bold;");
+
+        Label highestLabel = new Label(highestBid > 0
+                ? "Highest bid: $" + highestBid + " by " + highestBidder
+                : "No bids yet");
+        highestLabel.setStyle("-fx-font-size: 13;");
+
+        String currentBidderName = state.getPlayers().get(auction.currentBidderIndex).getName();
+        Label turnLabel = new Label("Waiting for: " + currentBidderName);
+        turnLabel.setStyle("-fx-font-style: italic;");
+
+        auctionContent.getChildren().addAll(propertyLabel, highestLabel, turnLabel, new Separator());
+
+        Label bidsTitle = new Label("Current bids:");
+        bidsTitle.setStyle("-fx-font-weight: bold;");
+        auctionContent.getChildren().add(bidsTitle);
+
+        for (int i = 0; i < state.getPlayers().size(); i++) {
+            Player p = state.getPlayers().get(i);
+            int bid = auction.bids.getOrDefault(p.getName(), 0);
+            boolean passed = auction.passed.contains(p.getName());
+            String status = passed ? " — PASSED" : (bid > 0 ? " — $" + bid : " — (no bid)");
+            Label row = new Label("  " + p.getName() + status);
+            if (passed) row.setStyle("-fx-text-fill: gray;");
+            else if (p.getName().equals(highestBidder)) row.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+            auctionContent.getChildren().add(row);
+        }
+
+        auctionContent.getChildren().add(new Separator());
+
+        if (isMyTurn && !iHavePassed) {
+            Player me = state.getPlayerByName(game.getPlayerName());
+            int minBid = highestBid + 1;
+            Label bidPrompt = new Label("Your turn! Minimum bid: $" + minBid + "  (you have $" + me.getMoney() + ")");
+            TextField bidField = new TextField(String.valueOf(minBid));
+            bidField.setMaxWidth(120);
+            Button bidBtn = new Button("Place Bid");
+            Button passBtn = new Button("Pass");
+            passBtn.setStyle("-fx-text-fill: gray;");
+
+            bidBtn.setOnAction(e -> {
+                try {
+                    int amount = Integer.parseInt(bidField.getText().trim());
+                    if (amount < minBid) { new Alert(Alert.AlertType.ERROR, "Bid must be at least $" + minBid).showAndWait(); return; }
+                    if (amount > me.getMoney()) { new Alert(Alert.AlertType.ERROR, "You can't afford that bid!").showAndWait(); return; }
+                    game.getClient().sendAuctionBid(game.getPlayerName(), amount);
+                    bidBtn.setDisable(true);
+                    passBtn.setDisable(true);
+                } catch (NumberFormatException ex) {
+                    new Alert(Alert.AlertType.ERROR, "Please enter a valid number.").showAndWait();
+                } catch (IOException ex) {
+                    System.out.println("Error sending auction bid: " + ex.getMessage());
+                }
+            });
+
+            passBtn.setOnAction(e -> {
+                try {
+                    game.getClient().sendAuctionPass(game.getPlayerName());
+                    bidBtn.setDisable(true);
+                    passBtn.setDisable(true);
+                } catch (IOException ex) {
+                    System.out.println("Error sending auction pass: " + ex.getMessage());
+                }
+            });
+
+            HBox actions = new HBox(10, bidField, bidBtn, passBtn);
+            actions.setAlignment(Pos.CENTER_LEFT);
+            auctionContent.getChildren().addAll(bidPrompt, actions);
+        } else if (!iHavePassed) {
+            auctionContent.getChildren().add(new Label("Waiting for other players..."));
+        } else {
+            auctionContent.getChildren().add(new Label("You have passed. Waiting for auction to finish..."));
+        }
     }
 
     private void showBuyHouseDialog() {

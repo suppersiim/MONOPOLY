@@ -27,6 +27,7 @@ public class PacketHandler {
     private BiConsumer<String, Integer> onBuyHouseOffer = null;
     private Consumer<BoardView.TradeInfo> onTradeOffer = null;
     private Consumer<Boolean> onTradeResponse = null;
+    private Consumer<GameState> onAuctionUpdate = null;
 
     public PacketHandler(Game game) {
         this.game = game;
@@ -38,6 +39,9 @@ public class PacketHandler {
             game.getGameState().deserialize(packet.getData());
             if (onGameStateUpdate != null) {
                 onGameStateUpdate.accept(game.getGameState());
+            }
+            if (game.getGameState().auctionState != null && onAuctionUpdate != null) {
+                onAuctionUpdate.accept(game.getGameState());
             }
         } catch (Exception e) {
             System.out.println("Error deserializing game state: " + e.getMessage());
@@ -163,6 +167,10 @@ public class PacketHandler {
         if (onTradeResponse != null) {
             onTradeResponse.accept(data.equals("accepted"));
         }
+    }
+
+    public void setOnAuctionUpdate(Consumer<GameState> onAuctionUpdate) {
+        this.onAuctionUpdate = onAuctionUpdate;
     }
 
 
