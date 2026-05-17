@@ -1,6 +1,7 @@
 package game_logic;
 
 import game_logic.NonOwnableSquare.Card;
+import game_logic.NonOwnableSquare.GetOutOfJailEffect;
 import game_logic.OwnableSquare.OwnableSquare;
 import game_logic.OwnableSquare.RailRoad;
 import game_logic.OwnableSquare.Street;
@@ -203,7 +204,7 @@ public class Player implements Serializable {
     public void givePlayerGetOutOfJailCard() {
         String event = this.name + " received a Get Out of Jail Free card!";
         GameManager.getInstance().broadcastEvent(event);
-        playerCards.add(new Card("Get Out of Jail Free", player -> {})); // add to inventory
+        playerCards.add(new Card("Get Out of Jail Free", new GetOutOfJailEffect()));
     }
 
     public boolean hasGetOutOfJailCard() {
